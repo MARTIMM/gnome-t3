@@ -1,0 +1,77 @@
+- ignore-wait: true
+- step-wait: 1.1
+
+# Set text of input widget
+- set-text:
+  - widget-id: inputTxt
+  - widget-class: Gnome::Gtk3::TextView
+  - text: text voor invoer\n
+
+# Test Copy button
+- emit-signal:
+  - widget-id: copyBttn
+  - widget-class: Gnome::Gtk3::Button
+  - signal-name: clicked
+
+# Check if text is copied to output widget
+- get-text:
+  - widget-id<outputTxt>,
+  - widget-class<Gnome::Gtk3::TextView>,
+
+- do-test:
+  - is: [ '$!test-value', "text voor invoer\n", 'Text found is same as input' ]
+
+# Repeat test of Copy button
+- set-text:
+  - widget-id: inputTxt
+  - widget-class: Gnome::Gtk3::TextView
+  - text: "2e text\n"
+
+- emit-signal:
+  - widget-id: copyBttn
+  - widget-class: Gnome::Gtk3::Button
+  - signal-name: clicked
+
+- get-text:
+  - widget-id: outputTxt
+  - widget-class: Gnome::Gtk3::TextView
+
+- is: [
+    '$!test-value',
+    "text voor invoer\n2e text\n",
+    'Text is appended properly'
+  ]
+
+# Test Clear button
+- emit-signal:
+  - widget-id: clearBttn
+  - widget-class: Gnome::Gtk3::Button
+  - signal-name: clicked
+
+- get-text:
+  - widget-id: outputTxt
+  - widget-class: Gnome::Gtk3::TextView
+
+- do-test:
+    - is: [ '$!test-value', "", 'Text is cleared']
+
+# Test Quit button
+- get-main-level: true
+- do-test:
+    - is: [ '$!test-value', 1, 'loop level is 1']
+
+#      debug,
+- emit-signal:
+  - widget-id: quitBttn
+  - widget-class: Gnome::Gtk3::Button
+  - signal-name: clicked
+
+- ignore-wait, false
+- wait: 1.5
+- get-main-level,
+- do-test:
+    - is: [ '$!test-value', 0, 'loop level is 0']
+
+
+# Stop tests
+- finish: true
