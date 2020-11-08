@@ -9,12 +9,12 @@
   "license": "Artistic-2.0",
 
   "provides": {
-    "Gnome::T": "lib/Gnome/T.pm6"
+    "Gnome::T::Gui": "lib/Gnome/T/Gui.pm6"
   },
 
   "source-url": "git://github.com/MARTIMM/gnome-test.git",
 
-  "depends": [ "Gnome::Gtk3" ],
+  "depends": [ "Gnome::Gtk3", "YAMLish"],
   "test-depends": [ ],
   "build-depends": [ ],
   "resources": [ ]
