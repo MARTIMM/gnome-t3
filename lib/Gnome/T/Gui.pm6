@@ -5,6 +5,8 @@ use NativeCall;
 use YAMLish;
 use Gnome::N::X;
 
+use Gnome::N::N-GObject;
+
 use Gnome::Gtk3::Main;
 use Gnome::Gtk3::TextIter;
 use Gnome::Gtk3::TextBuffer;
@@ -20,8 +22,8 @@ unit class Gnome::T::Gui:auth<github:MARTIMM>;
 
 has Array $!protocol;
 has $!top-widget;
+has Hash $!widgets;
 
-has Any $!test-value;
 
 #-------------------------------------------------------------------------------
 submethod BUILD ( ) { }
@@ -29,12 +31,18 @@ submethod BUILD ( ) { }
 #-------------------------------------------------------------------------------
 method load-test-protocol ( Str $protocol-file ) {
 
-  $!protocol = load-yaml($protocol-file.IO.slurp);
+  $!protocol = load-yaml($protocol-file.IO.slurp) // [];
 #note $!protocol.gist;
 }
 
 #-------------------------------------------------------------------------------
-method set-top-widget ( $!top-widget ) {
+method set-widgets-table ( Hash $!widgets ) { }
+
+#-------------------------------------------------------------------------------
+method set-top-widget ( Str:D $top-widget-name ) {
+  $!top-widget = self!get-widget($top-widget-name);
+  die "Top widget not found in widget table" unless ?$top-widget-name;
+
   $!top-widget.show-all;
 }
 
@@ -49,138 +57,130 @@ method run-test-protocol ( ) {
 
   # wait for the end and show result
   await $p;
+  is $p.result, 'Done testing', 'Finished with test protocol';
+  done-testing;
 #Gnome::N::debug(:off);
 }
 
 #-------------------------------------------------------------------------------
 method run-tests ( --> Str ) {
 
+  my Bool $verbose = True;
+  my $test-value;
+
+  diag "prepare tests";
+
   my Int $executed-tests = 0;
   my $main = Gnome::Gtk3::Main.new;
 
-  if $!protocol.elems {
+  my Bool $ignore-wait = False;
+  my $step-wait = 0.0;
 
-    my Bool $ignore-wait = False;
-    my $step-wait = 0.0;
+  # process all steps
+  for @$!protocol -> Hash $step {
+    diag "Test step: $step<type>";
 
-    for @$!protocol -> Hash $substep {
-note "SS: $substep.gist()";
+    given $step<type> {
 
-      if $substep.value() ~~ Block {
-        diag "substep: $substep.key() => Code block";
+      when 'configure-wait' {
+        $ignore-wait = $step<ignore-wait> // False;
+        $step-wait = $step<step-wait> // 0.0;
       }
 
-      elsif $substep.value() ~~ List {
-        diag "substep: $substep.key() => ";
-        for @($substep.value()) -> $v {
-          diag "           $v.key() => $v.value()";
-        }
+      when 'emit-signal' {
+        my Str $widget-name = $step<widget> // '';
+        my $widget = self!get-widget($widget-name);
+        my Str $signal-name = $step<signal-name>;
+        $widget.emit-by-name( $signal-name, $widget);
+        sleep(0.5);
       }
 
-      else {
-        if $substep.key() eq 'step-wait' and $ignore-wait {
-          diag "substep: $substep.key() => $substep.value() (ignored)";
-        }
-
-        else {
-          diag "substep: $substep.key() => $substep.value()";
-        }
+      when 'finish' {
+        last;
       }
 
-      given $substep.key {
-        when 'emit-signal' {
-          my Hash $ss = %(|$substep.value);
-          my Str $signal-name = $ss<signal-name> // 'clicked';
-          my $widget = self!get-widget($ss);
-          $widget.emit-by-name( $signal-name, $widget);
-        }
-
-        when 'get-text' {
-          my Hash $ss = %(|$substep.value);
-          my $widget = self!get-widget($ss);
-          my Gnome::Gtk3::TextBuffer $buffer .= new(
-            :native-object($widget.get-buffer)
-          );
-
-          my Gnome::Gtk3::TextIter $start = $buffer.get-start-iter;
-          my Gnome::Gtk3::TextIter $end = $buffer.get-end-iter;
-
-          $!test-value = $buffer.get-text( $start, $end, 1);
-        }
-
-        when 'set-text' {
-          my Hash $ss = %(|$substep.value);
-          my Str $text = $ss<text>;
-          my $widget = self!get-widget($ss);
-
-          my $n-buffer = $widget.get-buffer;
-          my Gnome::Gtk3::TextBuffer $buffer .= new(:native-object($n-buffer));
-          $buffer.set-text($text);
-          $widget.queue-draw;
-        }
-
-        when 'do-test' {
-          next unless $substep.value ~~ Block;
-          $executed-tests++;
-          $substep.value()();
-        }
-
-        when 'get-main-level' {
-          $!test-value = $main.gtk-main-level;
-        }
-
-        when 'step-wait' {
-          $step-wait = $substep.value();
-        }
-
-        when 'ignore-wait' {
-          $ignore-wait = ?$substep.value();
-        }
-
-        when 'wait' {
-          sleep $substep.value() unless $ignore-wait;
-        }
-
-        when 'debug' {
-          Gnome::N::debug(:on($substep.value));
-        }
-
-        when 'finish' {
-          last;
-        }
+      when 'get-main-level' {
+        $test-value = Gnome::Gtk3::Main.new.gtk-main-level;
       }
 
-      sleep($step-wait)
-        unless ( $substep.key eq 'wait' or $ignore-wait or $step-wait == 0.0 );
-
-      # make sure things get displayed
-      while $main.gtk-events-pending { $main.new.iteration-do(False);
+      when 'get-text' {
+        my Str $widget-name = $step<widget> // '';
+        my $widget = self!get-widget($widget-name);
+        my Gnome::Gtk3::TextBuffer $buffer .= new(
+          :native-object($widget.get-buffer)
+        );
+        my Gnome::Gtk3::TextIter $start = $buffer.get-start-iter;
+        my Gnome::Gtk3::TextIter $end = $buffer.get-end-iter;
+        $test-value = $buffer.get-text( $start, $end, 1);
       }
 
-      # Stop when loop is exited
-      #last unless $main.gtk-main-level();
+#`{{
+      when 'verbose' {
+        $verbose = True;
+      }
+
+      when 'quiet' {
+        $verbose = False;
+      }
+}}
+
+      when 'set-text' {
+        my Str $widget-name = $step<widget> // '';
+        my $widget = self!get-widget($widget-name);
+        my Gnome::Gtk3::TextBuffer $buffer .= new(
+          :native-object($widget.get-buffer)
+        );
+        $buffer.set-text($step<text> // '');
+        $widget.queue-draw;
+      }
+
+      when 'wait' {
+        $step-wait = $step<step-wait> // 0.0;
+        sleep($step-wait) unless $ignore-wait or $step-wait == 0.0;
+      }
     }
 
-    # End the main loop
-    $main.gtk-main-quit() if $main.gtk-main-level();
-    while $main.gtk-events-pending() { $main.iteration-do(False); }
+    # perform test if any
+    if ?$step<test> {
+      $executed-tests++;
+      given $step<test>[0] {
+        when 'is' {
+          is $test-value, $step<test>[1], $step<test>[2];
+        }
+
+        default {
+          # not a recognized test
+          $executed-tests--;
+        }
+      }
+    }
+
+    # loop wait unless wait is to be ignored or wait time is 0
+    unless $ignore-wait or $step-wait == 0.0 {
+      sleep($step-wait);
+    }
+
+    # make sure things get displayed
+    while $main.gtk-events-pending { $main.new.iteration-do(False); }
   }
 
+  # End the main loop
+  $main.gtk-main-quit() if $main.gtk-main-level();
+  while $main.gtk-events-pending() { $main.iteration-do(False); }
 
+  sleep(0.5);
   diag "Nbr steps: {$!protocol.elems // 0}";
-  diag "Nbr executed code blocks: $executed-tests";
+  diag "Nbr executed tests: $executed-tests";
 
   "Done testing"
 }
 
 #-------------------------------------------------------------------------------
-method !get-widget ( Hash $opts --> Any ) {
-  my Str:D $id = $opts<widget-id>;
-  my Str:D $class = $opts<widget-class>;
+method !get-widget ( Str $widget-name --> Any ) {
 
-  require ::($class);
-  my $widget = ::($class).new(:build-id($id));
-  is $widget.^name, $class, "Id '$id' of class $class found and initialized";
-
-  $widget
+  my List $widget-descr = $!widgets{$widget-name};
+  my Str $class-name = $widget-descr[0];
+  my N-GObject $native-object = $widget-descr[1];
+  require ::($class-name);
+  ::($class-name).new(:$native-object)
 }

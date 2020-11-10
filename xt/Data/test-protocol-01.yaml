@@ -1,77 +1,75 @@
-- ignore-wait: true
-- step-wait: 1.1
+- type:             configure-wait
+  step-wait:        1.0
+  ignore-wait:      false
+  ignore-wait:      true
+
+#- type:             wait
+#  step-wait:        2.5
 
 # Set text of input widget
-- set-text:
-  - widget-id: inputTxt
-  - widget-class: Gnome::Gtk3::TextView
-  - text: text voor invoer\n
+- type:             set-text
+  widget:           inputTxt
+  text:             "text voor invoer\n"
 
-# Test Copy button
-- emit-signal:
-  - widget-id: copyBttn
-  - widget-class: Gnome::Gtk3::Button
-  - signal-name: clicked
+# Test Copy button (simpel events)
+- type:             emit-signal
+  widget:           copyBttn
+  signal-name:      clicked
 
 # Check if text is copied to output widget
-- get-text:
-  - widget-id<outputTxt>,
-  - widget-class<Gnome::Gtk3::TextView>,
+- type:             get-text
+  widget:           outputTxt
+  test:             [ is, "text voor invoer\n", "text copied" ]
 
-- do-test:
-  - is: [ '$!test-value', "text voor invoer\n", 'Text found is same as input' ]
+# Check if input is cleared
+- type:             get-text
+  widget:           inputTxt
+  test:             [ is, "", "input text cleared" ]
 
 # Repeat test of Copy button
-- set-text:
-  - widget-id: inputTxt
-  - widget-class: Gnome::Gtk3::TextView
-  - text: "2e text\n"
+- type:             set-text
+  widget:           inputTxt
+  text:             "2e text\n"
 
-- emit-signal:
-  - widget-id: copyBttn
-  - widget-class: Gnome::Gtk3::Button
-  - signal-name: clicked
+# Test Copy button (simpel events)
+- type:             emit-signal
+  widget:           copyBttn
+  signal-name:      clicked
 
-- get-text:
-  - widget-id: outputTxt
-  - widget-class: Gnome::Gtk3::TextView
-
-- is: [
-    '$!test-value',
-    "text voor invoer\n2e text\n",
-    'Text is appended properly'
-  ]
+# Check if text is copied to output widget
+- type:             get-text
+  widget:           outputTxt
+  test:             [ is, "text voor invoer\n2e text\n", "text appended" ]
 
 # Test Clear button
-- emit-signal:
-  - widget-id: clearBttn
-  - widget-class: Gnome::Gtk3::Button
-  - signal-name: clicked
+- type:             emit-signal
+  widget:           clearBttn
+  signal-name:      clicked
 
-- get-text:
-  - widget-id: outputTxt
-  - widget-class: Gnome::Gtk3::TextView
-
-- do-test:
-    - is: [ '$!test-value', "", 'Text is cleared']
+# Check if input is cleared
+- type:             get-text
+  widget:           outputTxt
+  test:             [ is, "", "output text cleared" ]
 
 # Test Quit button
-- get-main-level: true
-- do-test:
-    - is: [ '$!test-value', 1, 'loop level is 1']
+- type:             get-main-level
+  test:             [ is, 1, 'loop level is 1']
 
-#      debug,
-- emit-signal:
-  - widget-id: quitBttn
-  - widget-class: Gnome::Gtk3::Button
-  - signal-name: clicked
+#debug
+- type:             emit-signal
+  widget:           quitBttn
+  signal-name:      clicked
 
-- ignore-wait, false
-- wait: 1.5
-- get-main-level,
-- do-test:
-    - is: [ '$!test-value', 0, 'loop level is 0']
+#- type:             configure-wait
+#  ignore-wait:      false
 
+#- type:             wait
+#  step-wait:        0.5
 
-# Stop tests
-- finish: true
+- type:             get-main-level
+  test:             [ is, 0, 'loop level now is 0']
+
+#- type:             wait
+#  step-wait:        1.5
+
+- type:             finish
