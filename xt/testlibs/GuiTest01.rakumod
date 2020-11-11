@@ -1,7 +1,5 @@
 use v6;
 
-use Gnome::T::Gui;
-
 use Gnome::Gtk3::Main;
 use Gnome::Gtk3::Builder;
 use Gnome::Gtk3::Window;
@@ -10,7 +8,7 @@ use Gnome::Gtk3::TextBuffer;
 use Gnome::Gtk3::TextView;
 
 #-------------------------------------------------------------------------------
-class Handlers {
+class GuiTest01 {
 
   #-----------------------------------------------------------------------------
   method glade-get-text ( Str:D $id --> Str ) {
@@ -71,15 +69,7 @@ class Handlers {
 
   #-----------------------------------------------------------------------------
   method exit-program ( --> Int ) {
-#`{{
-    diag "quit-program called";
-    diag "Widget: " ~ $widget.perl if ?$widget;
-    diag "Data: " ~ $data.perl if ?$data;
-    diag "Object: " ~ $object.perl if ?$object;
-}}
-#note "LL 1c: ", gtk_main_level();
     Gnome::Gtk3::Main.new.main-quit;
-#note "LL 1d: ", gtk_main_level();
 
     1
   }
@@ -87,7 +77,6 @@ class Handlers {
   #-----------------------------------------------------------------------------
   method copy-text ( --> Int ) {
 
-#note "copy text";
     my Str $text = self.glade-clear-text('inputTxt');
     self.glade-add-text( 'outputTxt', $text);
 
@@ -97,45 +86,8 @@ class Handlers {
   #-----------------------------------------------------------------------------
   method clear-text ( --> Int ) {
 
-#note "clear text";
     self.glade-clear-text('outputTxt');
 
     1
   }
 }
-
-#-------------------------------------------------------------------------------
-# load interface description
-my Gnome::Gtk3::Builder $gui-description .= new(
-  :file<xt/Data/test-interface-01.xml>
-);
-
-# create tested handlers table and register all signals
-my Handlers $h .= new;
-$gui-description.connect-signals-full( %(
-    :exit-program($h),
-    :copy-text($h),
-    :clear-text($h),
-  )
-);
-
-# create tested widgets table
-my Hash $widgets = %(
-  :window( 'Gnome::Gtk3::Window', $gui-description.get-object('window')),
-  :inputTxt( 'Gnome::Gtk3::TextView', $gui-description.get-object('inputTxt')),
-  :outputTxt(
-    'Gnome::Gtk3::TextView', $gui-description.get-object('outputTxt')
-  ),
-  :copyBttn( 'Gnome::Gtk3::Button', $gui-description.get-object('copyBttn')),
-  :clearBttn( 'Gnome::Gtk3::Button', $gui-description.get-object('clearBttn')),
-  :quitBttn( 'Gnome::Gtk3::Button', $gui-description.get-object('quitBttn')),
-);
-
-# load test protocol
-given my Gnome::T::Gui $gui-test .= new {
-  .load-test-protocol('xt/Data/test-protocol-01.yaml');
-  .set-widgets-table($widgets);
-  .set-top-widget('window');
-  .run-test-protocol;
-}
-#Gnome::Gtk3::Main.new.gtk-main;

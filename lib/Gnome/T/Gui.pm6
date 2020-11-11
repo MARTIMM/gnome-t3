@@ -100,7 +100,7 @@ method run-tests ( --> Str ) {
       }
 
       when 'get-main-level' {
-        $test-value = Gnome::Gtk3::Main.new.gtk-main-level;
+        $test-value = $main.gtk-main-level;
       }
 
       when 'get-text' {
