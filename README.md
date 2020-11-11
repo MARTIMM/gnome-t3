@@ -8,7 +8,10 @@
 
 # Description
 
-This is a project to provide a system which helps to test a GTK+ user interface build using te Raku modules **Gnome::***.
+This is a project to provide a system which helps to test a GTK+ user interface build using te Raku modules **Gnome::***. It looks promising although there are several issues I have to face.
+
+* Testing can be done using an XML file from the designer program `Glade`. Native objects can then easily be found using **Gnome::Gtk3::Builder** routines if the have an id to look up. When an application is built by creating the widgets and inserting them in containers, there will be no Builder involved and therefore no id to search for. The objects have to be searched for using something different. A name will do as long as it is unique but this is not obligatory from the GTK view as id's are.
+* Test code and the application code must be separated.
 
 # Installation
 
