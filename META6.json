@@ -1,7 +1,7 @@
 {
   "description": "Raku - Gtk Gui Testing",
   "name": "Gnome::T",
-  "version": "0.0.2",
+  "version": "0.3.0",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "test", "gui", "gtk"],
 
@@ -9,6 +9,7 @@
   "license": "Artistic-2.0",
 
   "provides": {
+    "Gnome::T::Benchmark": "lib/Gnome/T/Benchmark.pm6",
     "Gnome::T::Gui": "lib/Gnome/T/Gui.pm6"
   },
 
