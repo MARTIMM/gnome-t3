@@ -50,7 +50,8 @@ method save-tests ( ) {
 
 #-------------------------------------------------------------------------------
 method run-test (
-  Str:D $test-text, Callable:D $test-routine, Int :$count is copy
+  Str:D $test-text, Callable:D $test-routine, Int :$count is copy,
+  Callable :$prepare, Callable :$cleanup
 ) {
 
   note "Run test $test-text";
@@ -60,6 +61,8 @@ method run-test (
   $count //= $!default-count;
   loop ( my Int $test-count = 0; $test-count < $count; $test-count++ ) {
     ENTER {
+      $prepare() if $prepare.defined;
+      
       ( $user1, $system1, $cuser1, $csystem1) = times;
     }
 
@@ -69,6 +72,8 @@ method run-test (
       my ( $user2, $system2, $cuser2, $csystem2) = times;
       $total-utime += ($user2 - $user1);
       $total-stime += ($system2 - $system1);
+
+      $cleanup() if $cleanup.defined;
     }
   }
 
