@@ -50,14 +50,16 @@ method set-top-widget ( Str:D $top-widget-name ) {
 method run-test-protocol ( ) {
 
 #Gnome::N::debug(:on);
-  my Promise $p = $!top-widget.start-thread( self, 'run-tests', :new-context);
+#  my Promise $p = $!top-widget.start-thread( self, 'run-tests', :new-context);
 
   # start the main loop on the main thread
-  Gnome::Gtk3::Main.new.gtk-main;
+#  Gnome::Gtk3::Main.new.gtk-main;
 
   # wait for the end and show result
-  await $p;
-  is $p.result, 'Done testing', 'Finished with test protocol';
+#  await $p;
+#  is $p.result, 'Done testing', 'Finished with test protocol';
+
+  self.run-tests;
   done-testing;
 #Gnome::N::debug(:off);
 }
@@ -99,9 +101,9 @@ method run-tests ( --> Str ) {
         last;
       }
 
-      when 'get-main-level' {
-        $test-value = $main.gtk-main-level;
-      }
+#      when 'get-main-level' {
+#        $test-value = $main.gtk-main-level;
+#      }
 
       when 'get-text' {
         my Str $widget-name = $step<widget> // '';
@@ -165,10 +167,10 @@ method run-tests ( --> Str ) {
   }
 
   # End the main loop
-  $main.gtk-main-quit() if $main.gtk-main-level();
+#  $main.gtk-main-quit() if $main.gtk-main-level();
   while $main.gtk-events-pending() { $main.iteration-do(False); }
 
-  sleep(0.5);
+#  sleep(0.5);
   diag "Nbr steps: {$!protocol.elems // 0}";
   diag "Nbr executed tests: $executed-tests";
 
