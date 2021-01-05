@@ -1,0 +1,22 @@
+---
+Raku-2020.12.32: 
+  "Gnome::T-0.4.0": 
+    AboutDialog-0.0.0: 
+      test1: 
+        test-text: "Native sub search"
+        total-time: 3183438
+        mean: 6366.876
+        total-stime: 10751
+        count: 500
+        total-utime: 3172687
+        rps: 157.06289866490252
+      test-time: "2021-01-05T20:41:52.268727Z"
+      test0: 
+        rps: 1270.0218951774727
+        mean: 787.388
+        count: 500
+        total-time: 393694
+        total-stime: 2731
+        total-utime: 390963
+        test-text: "Method calls"
+...
