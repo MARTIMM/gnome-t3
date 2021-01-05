@@ -4,10 +4,15 @@ use Gnome::T::Benchmark;
 use Gnome::Gtk3::AboutDialog;
 
 my Gnome::Gtk3::AboutDialog $a .= new;
+
+my Str $project-version = Gnome::T::Benchmark.meta6-version;
+my Str $sub-project = Gnome::T::Benchmark.type-version(Gnome::Gtk3::Assistant);
+
 my Gnome::T::Benchmark $b .= new(
-  :default-count(500), :project<gnome-gtk3>, :project-version<0.34.2.1>,
-  :sub-project<AboutDialog>, :path<xt/Benchmark/Data>
+  :default-count(500), :project<gnome-gtk3>, :$project-version,
+  :$sub-project, :path<xt/Benchmarking/Data>
 );
+
 
 $b.run-test( 'Method calls', {
     $a.set-program-name('AboutDialog.t');
@@ -109,10 +114,8 @@ $b.run-test( 'Native sub search', {
   }
 );
 
-$b.compare-tests;
-
-#$b.show-test('Native sub search');
-#$b.show-test('Method calls');
+$b.load-tests;
+$b.modify-tests;
 $b.save-tests;
 
-$b.md-test-table( '0.34.2.1', '2020.10.109', 'AboutDialog', 0, 1);
+$b.search-compare-tests( :$project-version, :$sub-project, :!tables);
