@@ -1,7 +1,7 @@
 {
   "description": "Raku - Gtk Gui Testing",
   "name": "Gnome::T",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "test", "gui", "gtk"],
 
@@ -15,7 +15,7 @@
 
   "source-url": "git://github.com/MARTIMM/gnome-test.git",
 
-  "depends": [ "Gnome::Gtk3", "YAMLish", "P5times"],
+  "depends": [ "Gnome::Gtk3", "YAMLish", "P5times", "JSON::Fast"],
   "test-depends": [ ],
   "build-depends": [ ],
   "resources": [ ]
