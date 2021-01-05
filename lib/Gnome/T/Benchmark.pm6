@@ -1,6 +1,7 @@
 use v6;
 use P5times;
 use YAMLish;
+use JSON::Fast;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::T::Benchmark:auth<github:MARTIMM>;
@@ -31,7 +32,26 @@ submethod BUILD (
   $!project-version //= '0.0.1';
   $!raku-version = $*RAKU.compiler.version.Str;
   $!raku-version ~~ s/^ (\d+ '.' \d+ '.' \d+) .* $/$/[0].Str()/;
+  $!raku-version = 'Raku-' ~ $!raku-version;
   $!test-time = DateTime.new(now).utc.Str;
+}
+
+#-------------------------------------------------------------------------------
+method load-tests ( ) {
+
+  if ? $!project {
+    my Str $fpath = "$!path/$!project.yaml";
+    $!test-table = load-yaml($fpath.IO.slurp) // %() if $fpath.IO.r;
+  };
+}
+
+#-------------------------------------------------------------------------------
+method modify-tests ( ) {
+
+  if ? $!project {
+    $!tests<test-time> = $!test-time;
+    $!test-table{$!raku-version}{$!project-version}{$!sub-project} = $!tests;
+  };
 }
 
 #-------------------------------------------------------------------------------
@@ -39,12 +59,7 @@ method save-tests ( ) {
 
   if ? $!project {
     my Str $fpath = "$!path/$!project.yaml";
-    $!test-table = load-yaml($fpath.IO.slurp) // %() if $fpath.IO.r;
-
-    $!tests<test-time> = $!test-time;
-
-    $!test-table{$!project-version}{$!raku-version}{$!sub-project} = $!tests;
-    $fpath.IO.spurt(save-yaml($!test-table));
+    $fpath.IO.spurt(save-yaml($!test-table)) if ?$!test-table;
   };
 }
 
@@ -62,7 +77,7 @@ method run-test (
   loop ( my Int $test-count = 0; $test-count < $count; $test-count++ ) {
     ENTER {
       $prepare() if $prepare.defined;
-      
+
       ( $user1, $system1, $cuser1, $csystem1) = times;
     }
 
@@ -88,69 +103,139 @@ method run-test (
 }
 
 #-------------------------------------------------------------------------------
-method show-test ( Hash $test ) {
-
-  given $test {
-    note [~]
-      "\n", .<test-text>, "\n  ",
-      "Count:             ", .<count>, "\n  ",
-      "Total user time:   ", (.<total-utime>/1e6).fmt('%.5f'), "\n  ",
-      "Total system time: ", (.<total-stime>/1e6).fmt('%.5f'), "\n  ",
-      "Total of both:     ", (.<total-time>/1e6).fmt('%.5f'), "\n  ",
-      "Mean of both:      ", (.<mean>/1e6).fmt('%.5f'), "\n  ",
-      "Runs/sec:          ", .<rps>.fmt('%.2f'), ' ',
-        (.<speedup>//0.0).fmt('%.2f'), ' times faster'
-  }
-}
-
-#-------------------------------------------------------------------------------
-method md-test-table (
-  Str $project-version, Str $raku-version, Str $sub-project, *@test-idxs
+method search-compare-tests (
+  Str :$raku-version = Str, Str :$project-version = Str,
+  Str :$sub-project = Str, Str :$test-text = Str,
+  Bool :$tables = False, Bool :$markdown = True, Callable :$user-sub
 ) {
-  my Str $fpath = "$!path/$!project.md";
-  my Bool $first = True;
-  my Str $md = "|Project Version|Raku Version|Project|Sub Project|Test|Mean|Rps|Speedup|\n";
-  $md ~= "|-|-|-|-|-|-|-|-|\n";
+  my @tests = ();
 
-  my Hash $tests = $!test-table{$project-version}{$raku-version}{$sub-project};
+  for $!test-table.keys -> $v-raku {
+    if !$raku-version or (?$raku-version and $v-raku ~~ m/$raku-version/) {
 
-  for @test-idxs -> Int $test-index {
-    given $tests{"test$test-index"} {
-      if $first {
-        $md ~= "|$project-version|$raku-version|$!project|$sub-project|";
-        $first = False;
+      for $!test-table{$v-raku}.keys -> $v-project {
+        if !$project-version or (
+          ?$project-version and $v-project ~~ m/$project-version/
+        ) {
+
+          for $!test-table{$v-raku}{$v-project}.keys -> $v-subproj {
+            if !$sub-project or (
+              ?$sub-project and $v-subproj ~~ m/$sub-project/
+            ) {
+
+              for $!test-table{$v-raku}{$v-project}{$v-subproj}.keys -> $test {
+                next if $test eq 'test-time';
+
+                if !$test-text or (?$test-text and $!test-table{$v-raku}{$v-project}{$v-subproj}{$test}<test-text> ~~ m/$test-text/) {
+
+                  @tests.push: [
+                    $v-raku, $v-project, $v-subproj, $test,
+                    $!test-table{$v-raku}{$v-project}{$v-subproj}{$test}
+                  ];
+                }
+              }
+            }
+          }
+        }
       }
-      else {
-        $md ~= "|||||";
-      }
-
-      $md ~= ( .<test-text>, (.<mean>/1e6).fmt('%.5f'), .<rps>.fmt('%.2f'),
-               .<speedup>.fmt('%.2f'), "\n"
-             ).join('|');
     }
   }
 
-  note $md;
+  self!compare-tests( @tests, :$tables, :$markdown, :$user-sub);
 }
 
 #-------------------------------------------------------------------------------
-method compare-tests ( ) {
+method meta6-version ( --> Str ) {
+  my Str $version = '';
 
-  my @data := [$!tests.values];
+  if 'META6.json'.IO.r {
+    my Hash $meta6 = from-json('META6.json'.IO.slurp);
+    $version = $meta6<name> ~ '-' ~ $meta6<version>;
+  }
+
+  $version
+}
+
+#-------------------------------------------------------------------------------
+method type-version ( \type --> Str ) {
+  my Str $t = type.perl;
+  $t ~~ s:g/ <-[:]>+ '::' //;
+  my Str $version = $t ~ '-' ~ (type.^ver // '0.0.0').Str;
+
+  $version
+}
+
+#-------------------------------------------------------------------------------
+method !compare-tests (
+  @data? is copy, Bool :$tables = False, Bool :$markdown = True,
+  Callable :$user-sub
+) {
+
+  my Str $md;
+  if $markdown {
+    $md = "|Raku Version|Project Version|Sub Project|Test|Mean|Rps|Speedup|\n";
+    $md ~= "|-|-|-|-|-|-|-|\n";
+  }
 
   my $slowest;
   my $speedup;
-  for (|@data).sort( -> $a, $b { $a<rps> <=> $b<rps> }) -> Hash $x {
+  for (|@data).sort( -> $a, $b {$a[4]<rps> <=> $b[4]<rps> }) -> Array $x {
     if $slowest.defined {
-      $speedup = $x<rps> / $slowest;
+      $speedup = $x[4]<rps> / $slowest;
     }
 
     else {
       $speedup = 0e0;
-      $slowest = $x<rps>;
+      $slowest = $x[4]<rps>;
     }
 
-    $x<speedup> = $speedup;
-    self.show-test($x);
+    if $markdown {
+      $md ~= "|$x[0]|$x[1]|$x[2]|";
+      given $x[4] {
+        $md ~= ( .<test-text>,
+          (.<mean>/1e6).fmt('%.6f'), .<rps>.fmt('%.2f'),
+          $speedup == 0.0 ?? '-.--' !! $speedup.fmt('%.2f'), "\n"
+        ).join('|');
+      }
+    }
+
+    if ?$user-sub {
+      # Api: Raku Version, Project Version, Sub Project, Speedup,
+      #      :total-stime, :count, :mean, :rps, :total-utime,
+      #      :total-time, :test-text
+      $user-sub( $x[0..2], $speedup, |$x[4]);
+    }
+
+    if $tables {
+      given $x[4] {
+        note [~]
+          "\n", .<test-text>, "\n  ",
+          "Count:             ", .<count>, "\n  ",
+          "Total user time:   ", (.<total-utime>/1e6).fmt('%.5f'), "\n  ",
+          "Total system time: ", (.<total-stime>/1e6).fmt('%.5f'), "\n  ",
+          "Total of both:     ", (.<total-time>/1e6).fmt('%.5f'), "\n  ",
+          "Mean of both:      ", (.<mean>/1e6).fmt('%.5f');
+
+        if $speedup == 0.0 {
+          note [~]
+            "  Runs/sec:          ", .<rps>.fmt('%.2f'), ' ',
+              (0.0).fmt('%.2f'), ' slowest';
+        }
+
+        elsif $speedup <= 1.5 {
+          note [~]
+            "  Runs/sec:          ", .<rps>.fmt('%.2f'), ' ',
+              $speedup.fmt('%.2f'),  ' is not much faster'
+        }
+
+        else {
+          note [~]
+            "  Runs/sec:          ", .<rps>.fmt('%.2f'), ' ',
+              $speedup.fmt('%.2f'), ' times faster';
+        }
+      }
+    }
   }
+
+  note "\n$md" if $markdown;
 }
