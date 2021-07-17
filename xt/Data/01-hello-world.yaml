@@ -1,0 +1,41 @@
+- type:             configure-wait
+  step-wait:        0.5
+  ignore-wait:      false
+  ignore-wait:      true
+
+#- type:             wait
+#  step-wait:        2.5
+
+- type:             get-value
+  widget-name:      b2
+  method-name:      get-sensitive
+  value-key:        sens
+  test:             [ is, sens, false, "Second button not sensitive" ]
+
+- type:             sub-tests
+  protocol-file:    xt/Data/01-hello-world-button.yaml
+
+# Test top button
+- type:             emit-signal
+  widget-name:      b1
+  signal-name:      clicked
+
+- type:             get-value
+  widget-name:      b2
+  method-name:      get-sensitive
+  value-key:        sens
+  test:             [ is, sens, true, "Second button set sensitive" ]
+
+#- type:             wait
+#  step-wait:        1.5
+
+# Test bottom button
+- type:             emit-signal
+  widget-name:      b2
+  signal-name:      clicked
+
+#- type:             snapshot
+#  widget-name:      window
+#  image-file:       xt/Data/Images/w2
+
+- type:             finish

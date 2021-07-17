@@ -1,0 +1,25 @@
+- type:             configure-wait
+  step-wait:        0.5
+  ignore-wait:      false
+#  ignore-wait:      true
+
+#- type:             wait
+#  step-wait:        2.5
+
+- type:             get-value
+  widget-name:      b2
+  method-name:      get-sensitive
+  value-key:        sens
+  test:             [ is, sens, false, "Second button not sensitive" ]
+
+#- type:             snapshot
+#  widget-name:      window
+#  image-dir:        xt/Data/Images
+
+#- type:             snapshot
+#  widget-name:      b1
+#  image-file:       xt/Data/Images/b1
+
+#- type:             snapshot
+#  widget-name:      b2
+#  image-file:       xt/Data/Images/b2
