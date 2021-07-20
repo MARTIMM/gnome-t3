@@ -1,5 +1,17 @@
 ## Release notes
 
+* 2021-07-17 0.5.0
+  * Renamed `lib/Gnome/T/Gui.pm6` to `lib/Gnome/T.pm6` to get shorter module name.
+  * Test protocol can now have
+    * configure-wait to configure wait priods between steps
+    * emit-signal to emit a signal on a widget
+    * get-text to get text from a text widget like Entry
+    * get-value to get a value from a call
+    * set-text to set text in a text widget
+    * snapshot to generate an image from a widget
+    * subtests to perform tests from another protocol file
+  * Tests can be run on widgets from a XML Gui design and on widgets programmed by hand.
+
 * 2021-01-04 0.4.0
   * Add `meta6-version()` and `type-version()`. `meta6-version()` retrieves the version from the `Meta6.json` file and the project name is prefixed to it. `type-version()` gets the version from a type (Xyz:ver<0.1.0>) and tags the type name (minus project name) upfromt of the found version.
   * Some changes which make use easier. Also `search-compare-tests()` is added to make comparisons between other tests later. E.g. all modules can be compared with each other to show which are more time consuming than others. Or to see if there are improvements after upgrading the Raku compiler.
