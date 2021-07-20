@@ -1,16 +1,17 @@
 use v6;
 
+
+# << gui test module >> Can be done with 'raku -M Gnome::T program'
+use Gnome::T;
+
+
 use lib 'xt/testlibs';
 use GuiTest01;
 
-# << gui test module >>
-use Gnome::T::Gui;
+use Gnome::Gtk3::Builder;
 
 # << inhibit from program >>
 #use Gnome::Gtk3::Main;
-
-
-use Gnome::Gtk3::Builder;
 
 #-------------------------------------------------------------------------------
 # load interface description
@@ -26,6 +27,14 @@ $gui-description.connect-signals-full( %(
     :clear-text($h),
   )
 );
+
+my Gnome::Gtk3::Window $w .= new(
+  :native-object($gui-description.get-object('window'))
+);
+
+$w.show-all;
+# << inhibit from program >>
+#Gnome::Gtk3::Main.new.gtk-main;
 
 
 
@@ -44,18 +53,8 @@ my Hash $widgets = %(
 
 # << test code >>
 # load test protocol
-given my Gnome::T::Gui $gui-test .= new {
+given my Gnome::T $gui-test .= instance {
   .load-test-protocol('xt/Data/test-protocol-01.yaml');
   .set-widgets-table($widgets);
-  .set-top-widget('window');
   .run-test-protocol;
 }
-
-#`{{ << inhibit from program >>
-my Gnome::Gtk3::Window $w .= new(
-  :native-object($gui-description.get-object('window'))
-);
-
-$w.show-all;
-Gnome::Gtk3::Main.new.gtk-main;
-}}

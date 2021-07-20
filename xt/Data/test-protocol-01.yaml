@@ -8,57 +8,65 @@
 
 # Set text of input widget
 - type:             set-text
-  widget:           inputTxt
+  widget-name:      inputTxt
   text:             "text voor invoer\n"
 
 # Test Copy button (simpel events)
 - type:             emit-signal
-  widget:           copyBttn
+  widget-name:      copyBttn
   signal-name:      clicked
 
 # Check if text is copied to output widget
 - type:             get-text
-  widget:           outputTxt
-  test:             [ is, "text voor invoer\n", "text copied" ]
+  widget-name:      outputTxt
+  value-key:        txt
+  test:             [ is, txt, "text voor invoer\n", "text copied" ]
+
+#- type:             snapshot
+#  widget-name:      window
+#  image-dir:        xt/Data/Images
 
 # Check if input is cleared
 - type:             get-text
-  widget:           inputTxt
-  test:             [ is, "", "input text cleared" ]
+  widget-name:      inputTxt
+  value-key:        txt
+  test:             [ is, txt, "", "input text cleared" ]
 
 # Repeat test of Copy button
 - type:             set-text
-  widget:           inputTxt
+  widget-name:      inputTxt
   text:             "2e text\n"
 
 # Test Copy button (simpel events)
 - type:             emit-signal
-  widget:           copyBttn
+  widget-name:      copyBttn
   signal-name:      clicked
 
 # Check if text is copied to output widget
 - type:             get-text
-  widget:           outputTxt
-  test:             [ is, "text voor invoer\n2e text\n", "text appended" ]
+  widget-name:      outputTxt
+  value-key:        txt
+  test:             [ is, txt, "text voor invoer\n2e text\n", "text appended" ]
 
 # Test Clear button
 - type:             emit-signal
-  widget:           clearBttn
+  widget-name:      clearBttn
   signal-name:      clicked
 
 # Check if input is cleared
 - type:             get-text
-  widget:           outputTxt
-  test:             [ is, "", "output text cleared" ]
+  widget-name:      outputTxt
+  value-key:        txt
+  test:             [ is, txt, "", "output text cleared" ]
 
 # Test Quit button
 #- type:             get-main-level
 #  test:             [ is, 1, 'loop level is 1']
 
 # there is no main loop -> quitting gives error
-#- type:             emit-signal
-#  widget:           quitBttn
-#  signal-name:      clicked
+- type:             emit-signal
+  widget-name:      quitBttn
+  signal-name:      clicked
 
 #- type:             configure-wait
 #  ignore-wait:      false

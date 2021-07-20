@@ -1,5 +1,8 @@
 use v6;
 
+#-------------------------------------------------------------------------------
+unit class GuiTest01;
+
 use Gnome::Gtk3::Main;
 use Gnome::Gtk3::Builder;
 use Gnome::Gtk3::Window;
@@ -7,87 +10,63 @@ use Gnome::Gtk3::TextIter;
 use Gnome::Gtk3::TextBuffer;
 use Gnome::Gtk3::TextView;
 
-#-------------------------------------------------------------------------------
-class GuiTest01 {
+#-----------------------------------------------------------------------------
+has Gnome::Gtk3::TextBuffer $!text-buffer;
+has Gnome::Gtk3::TextIter $!start;
+has Gnome::Gtk3::TextIter $!end;
 
-  #-----------------------------------------------------------------------------
-  method glade-get-text ( Str:D $id --> Str ) {
+#-----------------------------------------------------------------------------
+method set-buffer ( Str $id ) {
+  my Gnome::Gtk3::TextView $text-view .= new(:build-id($id));
+  $!text-buffer .= new(:native-object($text-view.get-buffer));
+  $!start = $!text-buffer.get-start-iter;
+  $!end = $!text-buffer.get-end-iter;
+}
 
-    my Gnome::Gtk3::TextView $text-view .= new(:build-id($id));
-    my Gnome::Gtk3::TextBuffer $text-buffer .= new(
-      :native-object($text-view.get-buffer)
-    );
+#-----------------------------------------------------------------------------
+method gui-set-text ( Str:D $id, Str:D $text ) {
+  self.set-buffer($id);
+  $!text-buffer.set-text($text);
+}
 
-    my Gnome::Gtk3::TextIter $start = $text-buffer.get-start-iter;
-    my Gnome::Gtk3::TextIter $end = $text-buffer.get-end-iter;
+#-----------------------------------------------------------------------------
+method gui-get-text ( Str:D $id --> Str ) {
+  self.set-buffer($id);
+  $!text-buffer.get-text( $!start, $!end)
+}
 
-    $text-buffer.get-text( $start, $end)
-  }
+#-----------------------------------------------------------------------------
+method gui-add-text ( Str:D $id, Str:D $text is copy ) {
 
-  #-----------------------------------------------------------------------------
-  method glade-set-text ( Str:D $id, Str:D $text ) {
+  self.set-buffer($id);
+  $text = $!text-buffer.get-text( $!start, $!end, 1) ~ $text;
+  $!text-buffer.set-text($text);
+}
 
-    my Gnome::Gtk3::TextView $text-view .= new(:build-id($id));
-    my Gnome::Gtk3::TextBuffer $text-buffer .= new(
-      :native-object($text-view.get-buffer)
-    );
-    $text-buffer.set-text($text);
-  }
+#-----------------------------------------------------------------------------
+# Get the text and clear text field. Returns the original text
+method gui-clear-text ( Str:D $id --> Str ) {
+  self.set-buffer($id);
+  my Str $text = $!text-buffer.get-text( $!start, $!end, 1);
+  $!text-buffer.set-text("");
 
-  #-----------------------------------------------------------------------------
-  method glade-add-text ( Str:D $id, Str:D $text is copy ) {
+  $text
+}
 
-    my Gnome::Gtk3::TextView $text-view .= new(:build-id($id));
-    my Gnome::Gtk3::TextBuffer $text-buffer .= new(
-      :native-object($text-view.get-buffer)
-    );
+#-----------------------------------------------------------------------------
+#----[ handlers ]-------------------------------------------------------------
+#-----------------------------------------------------------------------------
+method exit-program ( ) {
+  Gnome::Gtk3::Main.new.main-quit;
+}
 
-    my Gnome::Gtk3::TextIter $start = $text-buffer.get-start-iter;
-    my Gnome::Gtk3::TextIter $end = $text-buffer.get-end-iter;
+#-----------------------------------------------------------------------------
+method copy-text ( ) {
+  my Str $text = self.gui-clear-text('inputTxt');
+  self.gui-add-text( 'outputTxt', $text);
+}
 
-    $text = $text-buffer.get-text( $start, $end, 1) ~ $text;
-    $text-buffer.set-text($text);
-  }
-
-  #-----------------------------------------------------------------------------
-  # Get the text and clear text field. Returns the original text
-  method glade-clear-text ( Str:D $id --> Str ) {
-
-    my Gnome::Gtk3::TextView $text-view .= new(:build-id($id));
-    my Gnome::Gtk3::TextBuffer $text-buffer .= new(
-      :native-object($text-view.get-buffer)
-    );
-
-    my Gnome::Gtk3::TextIter $start = $text-buffer.get-start-iter;
-    my Gnome::Gtk3::TextIter $end = $text-buffer.get-end-iter;
-
-    my Str $text = $text-buffer.get-text( $start, $end, 1);
-    $text-buffer.set-text("");
-
-    $text
-  }
-
-  #-----------------------------------------------------------------------------
-  method exit-program ( --> Int ) {
-    Gnome::Gtk3::Main.new.main-quit;
-
-    1
-  }
-
-  #-----------------------------------------------------------------------------
-  method copy-text ( --> Int ) {
-
-    my Str $text = self.glade-clear-text('inputTxt');
-    self.glade-add-text( 'outputTxt', $text);
-
-    1
-  }
-
-  #-----------------------------------------------------------------------------
-  method clear-text ( --> Int ) {
-
-    self.glade-clear-text('outputTxt');
-
-    1
-  }
+#-----------------------------------------------------------------------------
+method clear-text ( ) {
+  self.gui-clear-text('outputTxt');
 }

@@ -7,8 +7,8 @@ use Gnome::Gtk3::Window;
 use Gnome::Gtk3::Grid;
 use Gnome::Gtk3::Button;
 
-# << gui test module >> Can be done with 'raku -M Gnome::T::Gui program'
-#use Gnome::T::Gui;
+# << gui test module >> Can be done with 'raku -M Gnome::T program'
+#use Gnome::T;
 
 #-------------------------------------------------------------------------------
 # Instantiate main module for UI control
