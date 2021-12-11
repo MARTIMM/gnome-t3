@@ -1,5 +1,7 @@
 ## Release notes
-
+* 2021-12-11 0.6.0
+  * It is possible to test a gui without having to change the program. Just load module **Gnome::T** and provide option `--Tprotocol.yaml` to the commandline.
+ 
 * 2021-07-17 0.5.0
   * Renamed `lib/Gnome/T/Gui.pm6` to `lib/Gnome/T.pm6` to get shorter module name.
   * Test protocol can now have
