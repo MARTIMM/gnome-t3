@@ -3,8 +3,9 @@ use Test;
 use NativeCall;
 
 use YAMLish;
-use Gnome::N::X;
 
+use Gnome::N::X;
+use Gnome::N::TopLevelClassSupport;
 use Gnome::N::N-GObject;
 
 use Gnome::Cairo::ImageSurface;
@@ -17,11 +18,13 @@ use Gnome::Gtk3::TextIter;
 use Gnome::Gtk3::TextBuffer;
 use Gnome::Gtk3::TextView;
 use Gnome::Gtk3::Widget;
+use Gnome::Gtk3::Builder;
 
 use Gnome::Gdk3::Window;
 use Gnome::Gdk3::Pixbuf;
 
 use Gnome::Glib::Error;
+use Gnome::Glib::SList;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -29,7 +32,36 @@ use Gnome::Glib::Error;
 =end pod
 
 #-------------------------------------------------------------------------------
-unit class Gnome::T:auth<github:MARTIMM>:ver<0.5.0>;
+# This class inherits from TopLevelClassSupport not for the storage of a native
+# object but for the use of its routines and triggering of the test mode.
+unit class Gnome::T:auth<github:MARTIMM>:ver<0.6.0>;
+also is Gnome::N::TopLevelClassSupport;
+
+my Gnome::Gtk3::Builder $builder;
+$builder .= new;
+$builder._set-test-mode(True);
+
+END {
+  my Gnome::T $T .= instance;
+
+note "Args: $*PROGRAM-NAME, @*ARGS.raku(), $T._get-builders()";
+  $builder = $T._get-builders[0];
+
+  my Gnome::Glib::SList $list = $builder.get-objects;
+note "nbr objs; $list.length()";
+  for ^$list.length -> $i {
+    my $object = nativecast( N-GObject, $list.nth($i));
+note "o; $object.raku";
+  }
+
+  diag "Start testing ...";
+  with $T {
+    .load-test-protocol('xt/Data/01-hello-world-button.yaml');
+    .run-test-protocol;
+  }
+
+  diag "Done testing ...";
+}
 
 #-------------------------------------------------------------------------------
 my Gnome::T $instance;
@@ -87,7 +119,7 @@ method instance ( |c ) {
 method load-test-protocol ( Str:D $protocol-file where *.IO.r ) {
   $!protocol-name = $protocol-file.IO.basename;
   $!protocol-name ~~ s/ \. [ yaml | yml ] //;
-
+#note "\n$protocol-file\n", $protocol-file.IO.slurp;
   $!protocol = load-yaml($protocol-file.IO.slurp) // [];
 #note $!protocol.gist;
 }
@@ -102,6 +134,7 @@ method !load-subtest-protocol ( Str:D $protocol-file --> List ) {
   ( $protocol-name, $protocol)
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 method set-widgets-table ( Hash $!widgets ) {
   # get some widget from the table and get the top-level window
@@ -120,14 +153,17 @@ method add-widgets-table ( Hash $widgets ) {
     $!widgets{$k} = $v;
   }
 }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
-#method set-top-widget ( Str:D $top-widget-name ) {
-#  $!top-widget = self!get-widget($top-widget-name);
-#  die "Top widget not found in widget table" unless ?$top-widget-name;
-#
-#  $!top-widget.show-all;
-#}
+method set-top-widget ( Str:D $top-widget-name ) {
+  $!top-widget = self!get-widget($top-widget-name);
+  die "Top widget not found in widget table" unless ?$top-widget-name;
+
+  $!top-widget.show-all;
+}
+}}
 
 #-------------------------------------------------------------------------------
 method run-test-protocol ( ) {
@@ -139,9 +175,10 @@ method run-test-protocol ( ) {
     self, 'run-tests', :new-context, :$!protocol, :$!protocol-name, :top-level
   );
 
-  # start the main loop on the main thread
+  # start the main loop on the main thread must use :_GNOME_TEST_RUN_ to
+  # start it because Gnome:T prevents starting without arguments
   my Gnome::Gtk3::Main $main .= new;
-  $main.main unless $main.level;
+  $main.main(:_GNOME_TEST_RUN_) unless $main.level;
 
   # wait for the end and show result
   await $p;
@@ -153,7 +190,7 @@ method run-test-protocol ( ) {
 
   # quit all remaining loop levels
   while $main.level {
-    note "level: $main.level()";
+    diag "level: $main.level()";
     $main.quit;
     while $main.events-pending { $main.iteration-do(False); }
   }
@@ -179,7 +216,7 @@ method run-tests (
 
   # process all steps
   for @$protocol -> Hash $step {
-#    diag "Test step: $step<type>";
+    diag "\nTest step: $step.raku()";
 
     given $step<type> {
 
@@ -192,6 +229,7 @@ method run-tests (
 
       when 'emit-signal' {
         my Str $widget-name = $step<widget-name> // '';
+        my Str $widget-type = $step<widget-type> // '';
         my Str $signal-name = $step<signal-name>;
 
         if !$widget-name or !$signal-name {
@@ -201,13 +239,15 @@ method run-tests (
 
         diag "$step<type>: name = $widget-name, signal = $signal-name";
 
-        my $widget = self!get-widget($widget-name);
+        my $widget = self!get-widget( $widget-name, $widget-type);
         $widget.emit-by-name( $signal-name, $widget);
 #        sleep(0.5);
+        $widget.clear-object if $widget.is-valid;
       }
 
       when 'get-text' {
         my Str $widget-name = $step<widget-name> // '';
+        my Str $widget-type = $step<widget-type> // '';
         my Str $value-key = $step<value-key> // '';
 
         if !$value-key or !$widget-name {
@@ -215,7 +255,7 @@ method run-tests (
           next;
         }
 
-        my $widget = self!get-widget($widget-name);
+        my $widget = self!get-widget( $widget-name, $widget-type);
         my Gnome::Gtk3::TextBuffer $buffer .= new(
           :native-object($widget.get-buffer)
         );
@@ -227,10 +267,13 @@ method run-tests (
         my $s = $!sandbox{$value-key};
         $s ~~ s:g/\n/␤/;
         diag "$step<type>: text = '$s'";
+
+        $widget.clear-object if $widget.is-valid;
       }
 
       when 'get-value' {
         my Str $widget-name = $step<widget-name> // '';
+        my Str $widget-type = $step<widget-type> // '';
         my Str $method-name = $step<method-name> // '';
         my Str $value-key = $step<value-key> // '';
 
@@ -239,11 +282,12 @@ method run-tests (
           next;
         }
 
-        my $widget = self!get-widget($widget-name);
+        my $widget = self!get-widget( $widget-name, $widget-type);
         diag "$step<type>: name = $widget-name, method = $method-name";
 
         $!sandbox{$value-key} = $widget."$method-name"();
 #note "Sbox: $value-key, $!sandbox{$value-key}";
+        $widget.clear-object if $widget.is-valid;
       }
 
       when 'finish' {
@@ -267,12 +311,13 @@ method run-tests (
 
       when 'set-text' {
         my Str $widget-name = $step<widget-name> // '';
+        my Str $widget-type = $step<widget-type> // '';
         if !$widget-name {
           diag "$step<type>: widget-name not defined, test skipped";
           next;
         }
 
-        my $widget = self!get-widget($widget-name);
+        my $widget = self!get-widget( $widget-name, $widget-type);
         my Gnome::Gtk3::TextBuffer $buffer .= new(
           :native-object($widget.get-buffer)
         );
@@ -283,10 +328,12 @@ method run-tests (
 
         $buffer.set-text($step<text> // '');
         $widget.queue-draw;
+        $widget.clear-object if $widget.is-valid;
       }
 
       when 'snapshot' {
         my Str $widget-name = $step<widget-name> // '';
+        my Str $widget-type = $step<widget-type> // '';
         if !$widget-name {
           diag "$step<type>: widget-name not defined, test skipped";
           next;
@@ -308,7 +355,7 @@ method run-tests (
           $image-file = "$image-dir/$protocol-name.$image-type";
         }
 
-        my $widget = self!get-widget($widget-name);
+        my $widget = self!get-widget( $widget-name, $widget-type);
 
         diag "$step<type>: store snapshot in $image-file";
 
@@ -338,6 +385,7 @@ method run-tests (
 
         $cairo-context.clear-object;
         $surface.clear-object;
+        $widget.clear-object if $widget.is-valid;
       }
 
       when 'sub-tests' {
@@ -415,13 +463,35 @@ note "level: $main.level()";
 }
 
 #-------------------------------------------------------------------------------
-method !get-widget ( Str $widget-name --> Any ) {
+method !get-widget ( Str $widget-name, Str $widget-type --> Any ) {
 
+  my $builder-object = $builder.get-object($widget-name);
+note "$widget-name, $widget-type, $builder-object.raku()";
+
+  my $rk-object;
+  if ?$widget-type {
+    $rk-object = self._wrap-native-type-from-no(
+      $builder-object, :child-type($widget-type)
+    );
+  }
+
+  else {
+    $rk-object = self._wrap-native-type-from-no($builder-object);
+  }
+note "$rk-object.raku()";
+
+  die "Native object for '$widget-name' (type '$widget-type') not found"
+    unless $rk-object.is-valid;
+#:child-type
+#`{{
   my List $widget-descr = $!widgets{$widget-name};
   my Str $class-name = $widget-descr[0];
   my  $native-object = $widget-descr[1];
   require ::($class-name);
   ::($class-name).new(:$native-object)
+}}
+
+  $rk-object
 }
 
 #-------------------------------------------------------------------------------
