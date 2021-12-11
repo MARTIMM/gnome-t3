@@ -7,10 +7,26 @@
 #  step-wait:        2.5
 
 - type:             get-value
-  widget-name:      b2
+  widget-name:      GtkButton-0004
   method-name:      get-sensitive
   value-key:        sens
   test:             [ is, sens, false, "Second button not sensitive" ]
+
+# Test top button
+- type:             emit-signal
+  widget-name:      GtkButton-0003
+  signal-name:      clicked
+
+- type:             get-value
+  widget-name:      GtkButton-0004
+  method-name:      get-sensitive
+  value-key:        sens
+  test:             [ is, sens, true, "Second button set sensitive" ]
+
+# Test bottom button
+- type:             emit-signal
+  widget-name:      GtkButton-0004
+  signal-name:      clicked
 
 #- type:             snapshot
 #  widget-name:      window

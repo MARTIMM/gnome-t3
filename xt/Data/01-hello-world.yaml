@@ -37,5 +37,8 @@
 #- type:             snapshot
 #  widget-name:      window
 #  image-file:       xt/Data/Images/w2
+#- type:             emit-signal
+#  widget-name:      GtkWindow-0001
+#  signal-name:      destroy
 
 - type:             finish
