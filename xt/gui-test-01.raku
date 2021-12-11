@@ -14,7 +14,7 @@ use Gnome::Gtk3::Window;
 #-------------------------------------------------------------------------------
 # load interface description
 my Gnome::Gtk3::Builder $gui-description .= new(
-  :file<xt/Data/test-interface-01.xml>
+  :file<xt/Data/test-interface-01.glade>
 );
 
 # create handlers table and register all signals

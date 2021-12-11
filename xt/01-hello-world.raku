@@ -1,14 +1,19 @@
 use v6;
 #use lib '../gnome-native/lib';
 #use lib '../gnome-gobject/lib';
+#use lib '../gnome-gtk3/lib';
+
+# gui test module. Can be started with;
+# raku -MGnome::T gui-program --Ttest-protocol.yaml
+#use Gnome::T;
+
+use Gnome::N::X;
+Gnome::N::debug(:on);
 
 use Gnome::Gtk3::Main;
 use Gnome::Gtk3::Window;
 use Gnome::Gtk3::Grid;
 use Gnome::Gtk3::Button;
-
-# << gui test module >> Can be done with 'raku -M Gnome::T program'
-#use Gnome::T;
 
 #-------------------------------------------------------------------------------
 # Instantiate main module for UI control
@@ -69,10 +74,10 @@ $top-window.register-signal( $ash, 'exit-program', 'destroy');
 # Show everything and activate all
 $top-window.show-all;
 
-# << inhibit from program >>
-#$m.main;
+# inhibited when Gnome::T comes into the picture
+$m.main;
 
-
+#`{{
 # << test code >>
 # create tested widgets table
 my Hash $widgets = %(
@@ -83,8 +88,9 @@ my Hash $widgets = %(
 
 # << test code >>
 # load test protocol
-given my Gnome::T $gui-test .= instance {
+with my Gnome::T $gui-test .= instance {
   .load-test-protocol('xt/Data/01-hello-world.yaml');
   .set-widgets-table($widgets);
   .run-test-protocol;
 }
+}}
