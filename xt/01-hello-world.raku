@@ -1,14 +1,8 @@
 use v6;
-#use lib '../gnome-native/lib';
-#use lib '../gnome-gobject/lib';
-#use lib '../gnome-gtk3/lib';
 
-# gui test module. Can be started with;
-# raku -MGnome::T gui-program --Ttest-protocol.yaml
-#use Gnome::T;
-
-use Gnome::N::X;
-Gnome::N::debug(:on);
+#use lib '../gnome-cairo/lib';
+#use Gnome::N::X;
+#Gnome::N::debug(:on);
 
 use Gnome::Gtk3::Main;
 use Gnome::Gtk3::Window;
@@ -19,8 +13,7 @@ use Gnome::Gtk3::Button;
 # Instantiate main module for UI control
 my Gnome::Gtk3::Main $m .= new;
 
-#-------------------------------------------------------------------------------
-# Class to handle signals
+#----[ handler class ]----------------------------------------------------------
 class AppSignalHandlers {
 
   # Handle 'Hello World' button click
@@ -39,6 +32,8 @@ class AppSignalHandlers {
     $m.quit;
   }
 }
+
+my AppSignalHandlers $ash .= new;
 
 #-------------------------------------------------------------------------------
 # Create a top level window and set a title
@@ -60,7 +55,6 @@ $grid.attach( $button, 0, 0, 1, 1);
 $grid.attach( $second, 0, 1, 1, 1);
 
 # Instantiate the event handler class and register signals
-my AppSignalHandlers $ash .= new;
 $button.register-signal(
   $ash, 'first-button-click', 'clicked',
   :other-button($second)

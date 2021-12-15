@@ -1,83 +1,88 @@
-- type:             configure-wait
-  step-wait:        1.0
-  ignore-wait:      false
-  ignore-wait:      true
+config: x
 
-#- type:             wait
-#  step-wait:        2.5
 
-# Set text of input widget
-- type:             set-text
-  widget-name:      inputTxt
-  text:             "text voor invoer\n"
+test-protocol:
 
-# Test Copy button (simpel events)
-- type:             emit-signal
-  widget-name:      copyBttn
-  signal-name:      clicked
+  - type:             configure-wait
+    step-wait:        1.0
+    ignore-wait:      false
+    ignore-wait:      true
 
-# Check if text is copied to output widget
-- type:             get-text
-  widget-name:      outputTxt
-  value-key:        txt
-  test:             [ is, txt, "text voor invoer\n", "text copied" ]
+  #- type:             wait
+  #  step-wait:        2.5
 
-#- type:             snapshot
-#  widget-name:      window
-#  image-dir:        xt/Data/Images
+  # Set text of input widget
+  - type:             set-text
+    widget-name:      inputTxt
+    text:             "text voor invoer\n"
 
-# Check if input is cleared
-- type:             get-text
-  widget-name:      inputTxt
-  value-key:        txt
-  test:             [ is, txt, "", "input text cleared" ]
+  # Test Copy button (simpel events)
+  - type:             emit-signal
+    widget-name:      copyBttn
+    signal-name:      clicked
 
-# Repeat test of Copy button
-- type:             set-text
-  widget-name:      inputTxt
-  text:             "2e text\n"
+  # Check if text is copied to output widget
+  - type:             get-text
+    widget-name:      outputTxt
+    value-key:        txt
+    test:             [ is, txt, "text voor invoer\n", "text copied" ]
 
-# Test Copy button (simpel events)
-- type:             emit-signal
-  widget-name:      copyBttn
-  signal-name:      clicked
+  #- type:             snapshot
+  #  widget-name:      window
+  #  image-dir:        xt/Data/Images
 
-# Check if text is copied to output widget
-- type:             get-text
-  widget-name:      outputTxt
-  value-key:        txt
-  test:             [ is, txt, "text voor invoer\n2e text\n", "text appended" ]
+  # Check if input is cleared
+  - type:             get-text
+    widget-name:      inputTxt
+    value-key:        txt
+    test:             [ is, txt, "", "input text cleared" ]
 
-# Test Clear button
-- type:             emit-signal
-  widget-name:      clearBttn
-  signal-name:      clicked
+  # Repeat test of Copy button
+  - type:             set-text
+    widget-name:      inputTxt
+    text:             "2e text\n"
 
-# Check if input is cleared
-- type:             get-text
-  widget-name:      outputTxt
-  value-key:        txt
-  test:             [ is, txt, "", "output text cleared" ]
+  # Test Copy button (simpel events)
+  - type:             emit-signal
+    widget-name:      copyBttn
+    signal-name:      clicked
 
-# Test Quit button
-#- type:             get-main-level
-#  test:             [ is, 1, 'loop level is 1']
+  # Check if text is copied to output widget
+  - type:             get-text
+    widget-name:      outputTxt
+    value-key:        txt
+    test:             [ is, txt, "text voor invoer\n2e text\n", "text appended" ]
 
-# there is no main loop -> quitting gives error
-- type:             emit-signal
-  widget-name:      quitBttn
-  signal-name:      clicked
+  # Test Clear button
+  - type:             emit-signal
+    widget-name:      clearBttn
+    signal-name:      clicked
 
-#- type:             configure-wait
-#  ignore-wait:      false
+  # Check if input is cleared
+  - type:             get-text
+    widget-name:      outputTxt
+    value-key:        txt
+    test:             [ is, txt, "", "output text cleared" ]
 
-#- type:             wait
-#  step-wait:        0.5
+  # Test Quit button
+  #- type:             get-main-level
+  #  test:             [ is, 1, 'loop level is 1']
 
-#- type:             get-main-level
-#  test:             [ is, 0, 'loop level now is 0']
+  # there is no main loop -> quitting gives error
+  - type:             emit-signal
+    widget-name:      quitBttn
+    signal-name:      clicked
 
-#- type:             wait
-#  step-wait:        1.5
+  #- type:             configure-wait
+  #  ignore-wait:      false
 
-- type:             finish
+  #- type:             wait
+  #  step-wait:        0.5
+
+  #- type:             get-main-level
+  #  test:             [ is, 0, 'loop level now is 0']
+
+  #- type:             wait
+  #  step-wait:        1.5
+
+  - type:             finish
