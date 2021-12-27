@@ -50,17 +50,22 @@ method shoot ( Hash $config, Hash $step ) {
 
   my Int $width = $widget.get-allocated-width;
   my Int $height = $widget.get-allocated-height;
+note "$?LINE, $width, $height";
   my Gnome::Cairo::ImageSurface $surface .= new(
     :format(CAIRO_FORMAT_ARGB32), :$width, :$height
   );
+note "$?LINE, $surface.raku(), $surface.status()";
 
-  my Gnome::Cairo $cairo-context .= new(:$surface);
-note "$?LINE, $surface.raku(), $cairo-context.raku()";
-  #$widget.draw($cairo-context);
-  _gtk_widget_draw(
-    $widget._get-native-object-no-reffing,
-    $cairo-context._get-native-object-no-reffing
+  my Gnome::Cairo $cairo-context .= new(
+    :native-object(_cairo_create($surface._get-native-object-no-reffing))
   );
+  #my Gnome::Cairo $cairo-context .= new(:$surface);
+note "$?LINE, $cairo-context.raku()";
+  $widget.draw($cairo-context);
+  #_gtk_widget_draw(
+  #  $widget._get-native-object-no-reffing,
+  #  $cairo-context._get-native-object-no-reffing
+  #);
 note "$?LINE, draw";
 
   if $image-type eq 'png' {
@@ -95,4 +100,10 @@ sub _gtk_widget_draw (
   N-GObject $widget, cairo_t $cr
 ) is native(&gtk-lib)
   is symbol('gtk_widget_draw')
+  { * }
+
+sub _cairo_create (
+  cairo_surface_t $target --> cairo_t
+) is native(&cairo-lib)
+  is symbol('cairo_create')
   { * }
