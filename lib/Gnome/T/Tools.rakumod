@@ -32,14 +32,14 @@ method get-widget ( Str:D $widget-name, Str $widget-type = '' --> Any ) {
 
   # must loop over all builders available
   for @($!app-window._get-builders) -> $b {
-note 'builder: ', $b.raku;
+#note 'builder: ', $b.raku;
 #next;
     $builder-object = $b.get-object($widget-name) // N-GObject;
     last if ?$builder-object;
   }
 
 #  my $builder-object = $builder.get-object($widget-name);
-note "$widget-name, $widget-type, $builder-object.raku()";
+#note "$widget-name, $widget-type, $builder-object.raku()";
 #my Array $bs = self.get-builders;
 #note $bs;
 #return;
@@ -67,7 +67,7 @@ note 'builder: ', $b.raku;
   else {
     $rk-object = $!app-window._wrap-native-type-from-no($builder-object);
   }
-note "rk object $rk-object.raku()";
+#note "rk object $rk-object.raku()";
   die "Native object for '$widget-name' (type '$widget-type') not found"
     unless ?$rk-object and $rk-object.is-valid;
 #:child-type
