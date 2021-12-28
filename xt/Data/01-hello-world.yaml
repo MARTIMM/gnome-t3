@@ -1,44 +1,58 @@
-- type:             configure-wait
-  step-wait:        0.5
-  ignore-wait:      false
-  ignore-wait:      true
+# test config parameters
+config:
+  debug:            true
+  protocol-name:    01-hello-world
+  title:            Buttons Test
+  description:      Test buttons of simple GUI
+  app-window-id:    GtkWindow-0001
 
-#- type:             wait
-#  step-wait:        2.5
 
-- type:             get-value
-  widget-name:      b2
-  method-name:      get-sensitive
-  value-key:        sens
-  test:             [ is, sens, false, "Second button not sensitive" ]
+# main test protocol
+test-protocol:
 
-- type:             sub-tests
-  protocol-file:    xt/Data/01-hello-world-button.yaml
+  - type:             configure-wait
+    step-wait:        0.5
+    ignore-wait:      false
+    ignore-wait:      true
 
-# Test top button
-- type:             emit-signal
-  widget-name:      b1
-  signal-name:      clicked
+  #- type:             wait
+  #  step-wait:        2.5
 
-- type:             get-value
-  widget-name:      b2
-  method-name:      get-sensitive
-  value-key:        sens
-  test:             [ is, sens, true, "Second button set sensitive" ]
+  # Test sensitivity of 2nd button
+  - type:             get-value
+    widget-name:      GtkButton-0004
+    method-name:      get-sensitive
+    value-key:        sens
+    test:             [ is, sens, false, "Second button not sensitive" ]
 
-#- type:             wait
-#  step-wait:        1.5
+#  - type:             sub-tests
+#    protocol-file:    xt/Data/01-hello-world-button.yaml
 
-# Test bottom button
-- type:             emit-signal
-  widget-name:      b2
-  signal-name:      clicked
+  # Test top button
+  - type:             emit-signal
+    widget-name:      GtkButton-0003
+    signal-name:      clicked
 
-#- type:             snapshot
-#  widget-name:      window
-#  image-file:       xt/Data/Images/w2
-#- type:             emit-signal
-#  widget-name:      GtkWindow-0001
-#  signal-name:      destroy
+  - type:             get-value
+    widget-name:      GtkButton-0004
+    method-name:      get-sensitive
+    value-key:        sens
+    test:             [ is, sens, true, "Second button set sensitive" ]
 
-- type:             finish
+  #- type:             wait
+  #  step-wait:        1.5
+
+  # Test bottom button
+  - type:             emit-signal
+    widget-name:      GtkButton-0004
+    signal-name:      clicked
+
+  - type:             snapshot
+    widget-name:      GtkWindow-0001
+    image-dir:        xt/Data/Images
+
+  - type:             emit-signal
+    widget-name:      GtkWindow-0001
+    signal-name:      destroy
+
+  - type:             finish

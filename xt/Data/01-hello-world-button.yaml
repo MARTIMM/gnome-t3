@@ -13,7 +13,7 @@ test-protocol:
   - type:             configure-wait
     step-wait:        0.5
     ignore-wait:      false
-  #  ignore-wait:      true
+    ignore-wait:      true
 
   #- type:             wait
   #  step-wait:        2.5
