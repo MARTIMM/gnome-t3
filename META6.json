@@ -1,7 +1,7 @@
 {
   "description": "Raku - Gtk Gui Testing",
   "name": "Gnome::T",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "test", "gui", "gtk"],
 
@@ -9,8 +9,14 @@
   "license": "Artistic-2.0",
 
   "provides": {
-    "Gnome::T::Benchmark": "lib/Gnome/T/Benchmark.pm6",
-    "Gnome::T::Gui": "lib/Gnome/T/Gui.pm6"
+    "Gnome::T::Benchmark": "lib/Gnome/T/Benchmark.rakumod",
+
+    "Gnome::T::Run": "lib/Gnome/T/Run.rakumod",
+    "Gnome::T::StepSnapshot": "lib/Gnome/T/StepSnapshot.rakumod",
+    "Gnome::T::StepWait": "lib/Gnome/T/StepWait.rakumod",
+    "Gnome::T::Tools": "lib/Gnome/T/Tools.rakumod",
+
+    "Gnome::T": "lib/Gnome/T/T.rakumod"
   },
 
   "source-url": "git://github.com/MARTIMM/gnome-test.git",
