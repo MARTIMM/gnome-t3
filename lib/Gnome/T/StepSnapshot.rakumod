@@ -39,62 +39,48 @@ method shoot ( Hash $config, Hash $step ) {
 
   my $widget = $!tools.get-widget( $widget-name, $widget-type);
 
-  my Str $image-dir = $step<image-dir>;
+  my Str $image-dir = $step<image-dir> // Str;
   my Str $image-file = $step<image-file> // $widget-name;
-  my Str $image-type = $step<image-type>;
+  my Str $image-type = $step<image-type> // 'png';
 
-  $image-file ~= ".$image-type" if $image-type;
+  $image-file ~= ".$image-type" unless $image-file ~~ m/ \. [ png || jpg ] /;
   $image-file = "$image-dir/$image-file" if $image-dir;
 
   diag "$step<type>: store snapshot in $image-file";
 
   my Int $width = $widget.get-allocated-width;
   my Int $height = $widget.get-allocated-height;
-note "$?LINE, $width, $height";
   my Gnome::Cairo::ImageSurface $surface .= new(
     :format(CAIRO_FORMAT_ARGB32), :$width, :$height
   );
-note "$?LINE, $surface.raku(), $surface.status()";
 
-  my Gnome::Cairo $cairo-context .= new(
-    :native-object(_cairo_create($surface._get-native-object-no-reffing))
-  );
-  #my Gnome::Cairo $cairo-context .= new(:$surface);
-note "$?LINE, $cairo-context.raku()";
+  my Gnome::Cairo $cairo-context .= new(:$surface);
   $widget.draw($cairo-context);
-  #_gtk_widget_draw(
-  #  $widget._get-native-object-no-reffing,
-  #  $cairo-context._get-native-object-no-reffing
-  #);
-note "$?LINE, draw";
 
   if $image-type eq 'png' {
     $surface.write-to-png($image-file);
-note "$?LINE";
   }
 
   else {
     my Gnome::Gdk3::Pixbuf $pb .= new(
       :$surface, :clipto( 0, 0, $width, $height)
     );
-note "$?LINE";
 
     my Gnome::Glib::Error $e = $pb.savev(
       $image-file, 'jpeg', ["quality",], ["100",]
     );
-note "$?LINE";
 
     diag $e.message if $e.is-valid;
   }
 
   $cairo-context.clear-object;
-note "$?LINE";
   $surface.clear-object;
-note "$?LINE";
   $widget.clear-object if $widget.is-valid;
-note "$?LINE";
 }
 
+
+
+=finish
 #-------------------------------------------------------------------------------
 sub _gtk_widget_draw (
   N-GObject $widget, cairo_t $cr
