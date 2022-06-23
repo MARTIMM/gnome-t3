@@ -18,9 +18,16 @@ test-protocol:
   #- type:             wait
   #  step-wait:        2.5
 
+  - type:             emit-signal
+    widget-name:      GtkButton-0001
+    signal-name:      clicked
+
+  - type:             explicit-wait
+    step-wait:        2.5
+
   # Test sensitivity of 2nd button
   - type:             get-value
-    widget-name:      GtkButton-0004
+    widget-name:      GtkButton-0002
     method-name:      get-sensitive
     value-key:        sens
     test:             [ is, sens, false, "Second button not sensitive" ]
@@ -30,11 +37,11 @@ test-protocol:
 
   # Test top button
   - type:             emit-signal
-    widget-name:      GtkButton-0003
+    widget-name:      GtkButton-0001
     signal-name:      clicked
 
   - type:             get-value
-    widget-name:      GtkButton-0004
+    widget-name:      GtkButton-0002
     method-name:      get-sensitive
     value-key:        sens
     test:             [ is, sens, true, "Second button set sensitive" ]
@@ -44,7 +51,7 @@ test-protocol:
 
   # Test bottom button
   - type:             emit-signal
-    widget-name:      GtkButton-0004
+    widget-name:      GtkButton-0002
     signal-name:      clicked
 
   - type:             snapshot

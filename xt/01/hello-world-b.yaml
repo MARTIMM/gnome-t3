@@ -1,7 +1,7 @@
 # test config parameters
 config:
-  debug:            true
-  protocol-name:    01-hello-world-button
+#  debug:            true
+  protocol-name:    hello-world
   title:            Buttons Test
   description:      Test buttons of simple GUI
   app-window-id:    GtkWindow-0001
@@ -9,57 +9,72 @@ config:
 
 # main test protocol
 test-protocol:
+#  - type:             debug-on
 
   - type:             configure-wait
-    step-wait:        0.5
+    step-wait:        1.5
     ignore-wait:      false
     ignore-wait:      true
 
   #- type:             wait
   #  step-wait:        2.5
 
+  # Test sensitivity of 2nd button
   - type:             get-value
     widget-name:      GtkButton-0004
     method-name:      get-sensitive
     value-key:        sens
-    test:             [ is, sens, false, "Second button is not sensitive" ]
+    test:             [ is, sens, false, "Second button not sensitive" ]
+
+#  - type:             sub-tests
+#    protocol-file:    xt/Data/01-hello-world-button.yaml
 
   # Test top button
-  - type:             emit-signal
+  - type:             insert-event
     widget-name:      GtkButton-0003
-    signal-name:      clicked
+#    signal-name:      clicked
+
+  # Test top button
+#  - type:             emit-signal
+#    widget-name:      GtkButton-0003
+#    signal-name:      clicked
 
   - type:             get-value
     widget-name:      GtkButton-0004
     method-name:      get-sensitive
     value-key:        sens
-    test:             [ is, sens, true, "Second button is sensitive" ]
+    test:             [ is, sens, true, "Second button set sensitive" ]
 
-  - type:             snapshot
-    widget-name:      GtkWindow-0001
-    image-dir:        xt/Data/Images
-    image-file:       GtkWindow-0001
-    image-type:       png
+  #- type:             wait
+  #  step-wait:        1.5
 
-  - type:             snapshot
-    widget-name:      GtkButton-0003
-    image-dir:        xt/Data/Images
-    image-file:       GtkButton-0003
-    image-type:       png
-
-  - type:             snapshot
-    widget-name:      GtkButton-0004
-    image-dir:        xt/Data/Images
-    image-file:       GtkButton-0004
-    image-type:       jpg
+  #
 
   # Test bottom button
   - type:             emit-signal
     widget-name:      GtkButton-0004
     signal-name:      clicked
 
+  - type:             snapshot
+    widget-name:      GtkWindow-0001
+    image-dir:        xt/01/images
+    image-file:       GtkWindow-0001
+    image-type:       png
 
-# secondary protocol referred from main or other protocol.
-# free name 'protocol-01' prefixed with 'sub-'
-#sub-protocol-01:
-#  - type:             emit-signal
+  - type:             snapshot
+    widget-name:      GtkButton-0003
+    image-dir:        xt/01/images
+    image-file:       GtkButton-0003
+    image-type:       png
+
+  - type:             snapshot
+    widget-name:      GtkButton-0004
+    image-dir:        xt/01/images
+    image-file:       GtkButton-0004
+    image-type:       jpg
+
+  - type:             emit-signal
+    widget-name:      GtkWindow-0001
+    signal-name:      destroy
+
+  - type:             finish

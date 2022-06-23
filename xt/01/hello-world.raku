@@ -1,6 +1,7 @@
 use v6;
 
 #use lib '../gnome-cairo/lib';
+use lib '../gnome-test/lib';
 #use Gnome::N::X;
 #Gnome::N::debug(:on);
 
@@ -17,7 +18,7 @@ my Gnome::Gtk3::Main $m .= new;
 class AppSignalHandlers {
 
   # Handle 'Hello World' button click
-  method first-button-click ( :widget($b1), :other-button($b2) ) {
+  method first-button-click ( :_widget($b1), :other-button($b2) ) {
     $b1.set-sensitive(False);
     $b2.set-sensitive(True);
   }
