@@ -46,6 +46,7 @@ method shoot ( Hash $config, Hash $step ) {
   $image-file ~= ".$image-type" unless $image-file ~~ m/ \. [ png || jpg ] /;
   $image-file = "$image-dir/$image-file" if $image-dir;
 
+  $*log-file-handle.print("  store in $image-file\n");
   diag "$step<type>: store snapshot in $image-file";
 
   my Int $width = $widget.get-allocated-width;
@@ -70,6 +71,7 @@ method shoot ( Hash $config, Hash $step ) {
       $image-file, 'jpeg', ["quality",], ["100",]
     );
 
+    $*log-file-handle.print("  $e.message()\n") if $e.is-valid;
     diag $e.message if $e.is-valid;
   }
 

@@ -7,7 +7,7 @@ use Gnome::N::N-GObject;
 use Gnome::Gtk3::Window;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::T::Tools:auth<github:MARTIMM>:ver<0.1.0>;
+unit class Gnome::T::Tools:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 my Gnome::T::Tools $instance;

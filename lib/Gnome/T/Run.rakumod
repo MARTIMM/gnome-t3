@@ -22,6 +22,7 @@ use Gnome::Gdk3::Keysyms;
 use Gnome::Gdk3::Types;
 use Gnome::Gdk3::Events;
 use Gnome::Gdk3::Window;
+use Gnome::Gdk3::Display;
 
 #use Gnome::Glib::Error;
 
@@ -35,7 +36,7 @@ use Gnome::T::StepWait;
 use Gnome::T::StepSnapshot;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::T::Run:auth<github:MARTIMM>:ver<0.1.0>;
+unit class Gnome::T::Run:auth<github:MARTIMM>;
 also is Gnome::Gtk3::Window;
 
 #-----------------------------------------------------------------------------
@@ -47,6 +48,7 @@ has Hash $!sandbox;
 #has $!T is required;
 has Bool $!verbose;
 
+has Str $!protocol-file;
 has Hash $!main-protocol;
 has Array $!protocol;
 has Str $!protocol-name;
@@ -69,7 +71,7 @@ submethod new ( |c ) {
 }
 
 #-------------------------------------------------------------------------------
-submethod BUILD ( Hash:D :$!main-protocol ) {
+submethod BUILD ( Str:D :$!protocol-file ) {
 
   $!builder .= new;
   $!builder._set-test-mode(True);
@@ -77,6 +79,7 @@ submethod BUILD ( Hash:D :$!main-protocol ) {
   $!main .= new;
   $!sandbox = %();
 
+  $!main-protocol = load-yaml($!protocol-file.IO.slurp) // %();
   $!protocol = $!main-protocol<test-protocol> // [];
   $!config = $!main-protocol<config> // %();
   $!protocol-name = $!config<protocol-name> // 'gui-test';
@@ -166,15 +169,48 @@ method run-tests ( ) {
 
 #note $!main-protocol.raku;
 
+  # open a logfile for the tests$
+  my Str $path = $!protocol-file.IO.dirname;
+#note $path;
+
+  $*log-time .= now;
+  my Str $t = $*log-time.Str();
+  $t ~~ s/ \. .* $ //;
+  $t ~~ s/ T / /;
+  my Str $log-file-name = [~] $path, '/', $!protocol-name, ' ', $t, '.log';
+  diag "Open logfile $log-file-name";
+  $*log-file-handle = $log-file-name.IO.open(:rw);
+
   # process all steps
   for @$!protocol -> Hash $step {
     diag "\nTest step: $step<type>";
-#    diag "\nTest step: $step.raku()";
+    diag "\nTest step: $step.gist()";
+    $*log-file-handle.print(
+      "\n$*log-time.hh-mm-ss(): Test step: $step<type>\n"
+    );
 
     given $step<type> {
+#`{{
+      when 'debug-on' {
+        Gnome::N::debug(:on);
+      }
+
+      when 'debug-of' {
+        Gnome::N::debug(:off);
+      }
+}}
 
       when 'configure-wait' {
         $!step-wait.configure($step);
+      }
+
+      when 'wait' {
+        $!step-wait.wait($step);
+      }
+
+      when 'explicit-wait' {
+note "$!step-wait, $step.gist()";
+        $!step-wait.explicit-wait($step);
       }
 
       when 'emit-signal' {
@@ -184,16 +220,67 @@ method run-tests ( ) {
 
         if !$widget-name or !$signal-name {
           diag "$step<type>: widget-name and/or signal-name not defined, test skipped";
+          $*log-file-handle.print(
+            "  widget-name and/or signal-name not defined, test skipped\n"
+          );
           next;
         }
 
         diag "$step<type>: name = $widget-name, signal = $signal-name";
+        $*log-file-handle.print(
+          "  name = $widget-name, signal = $signal-name\n"
+        );
 
         my $widget = $!tools.get-widget( $widget-name, $widget-type);
         $widget.emit-by-name( $signal-name, $widget);
-#        sleep(0.5);
         $widget.clear-object if $widget.is-valid;
       }
+#`{{
+      when 'insert-event' {
+        my Str $widget-name = $step<widget-name> // '';
+        my Str $widget-type = $step<widget-type> // '';
+
+        if !$widget-name {
+          diag "$step<type>: widget-name, test skipped";
+          $*log-file-handle.print(
+            "  widget-name not defined, test skipped\n"
+          );
+          next;
+        }
+
+        diag "$step<type>: name = $widget-name";
+        $*log-file-handle.print(
+          "  name = $widget-name\n"
+        );
+
+        my $widget = $!tools.get-widget( $widget-name, $widget-type);
+        my Gnome::Gdk3::Display $display = $widget.get-display-rk;
+        my Gnome::Gdk3::Window $window .= new(
+          :native-object($widget.get-window)
+        );
+note "display: $display.is-valid(), $display.get-name()";
+note "window: $window.is-valid()";
+
+        my N-GdkEvent $event;
+        $event .= new(
+          N-GdkEventButton.new(
+            :type(GDK_BUTTON_PRESS),
+            :$window,
+            :send_event(1),
+            :time(time),
+            :x(20), :y(20), :axes(Num),
+            :state(0),
+            :button(1),
+#            Gnome::Gdk3::Events.new.get-source-device($event),
+#            :x_root(20), :y_root(20)
+          )
+        );
+note "event: $event.gist()";
+
+        $widget.clear-object if $widget.is-valid;
+      }
+}}
+
 #`{{
       when 'get-text' {
         my Str $widget-name = $step<widget-name> // '';
@@ -229,11 +316,17 @@ method run-tests ( ) {
 
         if !$value-key or !$widget-name or !$method-name {
           diag "$step<type>: value-key, widget-name and/or method-name not defined, test skipped";
+          $*log-file-handle.print(
+            "  value-key, widget-name and/or method-name not defined, test skipped\n"
+          );
           next;
         }
 
         my $widget = $!tools.get-widget( $widget-name, $widget-type);
         diag "$step<type>: name = $widget-name, method = $method-name";
+        $*log-file-handle.print(
+          "  name = $widget-name, method = $method-name\n"
+        );
 
         $!sandbox{$value-key} = $widget."$method-name"();
 #note "Sbox: $value-key, $!sandbox{$value-key}";
@@ -242,6 +335,7 @@ method run-tests ( ) {
 
       when 'finish' {
         diag "$step<type>: exit test protocol";
+        $*log-file-handle.print("  exit test protocol\n");
         last;
       }
 
@@ -360,10 +454,6 @@ method run-tests ( ) {
         $!executed-tests++;
       }
 }}
-
-      when 'wait' {
-        $!step-wait.wait($step);
-      }
     }
 
     # perform test if any
@@ -378,10 +468,14 @@ method run-tests ( ) {
           my Str $note = $step<test>[3] // '';
           #diag "test: $step<test>[0] '$s'";
           is $result, $check-with, $note;
+          $*log-file-handle.print(
+            "  testing 'is $result, $check-with, $note'\n"
+          );
         }
 
         default {
           # not a recognized test
+          $*log-file-handle.print("  $step<test> is not a recognized test\n");
           $!executed-tests--;
         }
       }
@@ -401,6 +495,8 @@ method run-tests ( ) {
 #  sleep(0.5);
   diag "Nbr steps in $!protocol-name: {$!protocol.elems // 0}";
   diag "Nbr executed tests: $!executed-tests";
+  $*log-file-handle.print("  Nbr steps in $!protocol-name: {$!protocol.elems // 0}\n");
+  $*log-file-handle.print("  Nbr executed tests: $!executed-tests\n");
 
 #`{{
 note 'tl: ', $top-level;
@@ -414,6 +510,8 @@ note "level: $!main.level()";
     }
   }
 }}
+
+  $*log-file-handle.close;
 }
 
 #`{{
