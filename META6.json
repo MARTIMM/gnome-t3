@@ -16,7 +16,7 @@
     "Gnome::T::StepWait": "lib/Gnome/T/StepWait.rakumod",
     "Gnome::T::Tools": "lib/Gnome/T/Tools.rakumod",
 
-    "Gnome::T": "lib/Gnome/T/T.rakumod"
+    "Gnome::T": "lib/Gnome/T.rakumod"
   },
 
   "source-url": "git://github.com/MARTIMM/gnome-test.git",

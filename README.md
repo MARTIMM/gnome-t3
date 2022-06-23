@@ -20,7 +20,7 @@
 
 # Description
 
-This is a project to provide a system which helps to test a GTK+ user interface build using te Raku modules **Gnome::***.
+This is a project to provide a system which helps to test a GTK+ user interface build using the Raku modules **Gnome::***.
 
 Suppose the program is called `my-gui-program.raku` then you can run a test with
 ```
