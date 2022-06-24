@@ -18,9 +18,12 @@ my Gnome::Gtk3::Main $m .= new;
 class AppSignalHandlers {
 
   # Handle 'Hello World' button click
-  method first-button-click ( :_widget($b1), :other-button($b2) ) {
+  method first-button-click ( :_widget($b1), :other-button($b2), :$top-window) {
     $b1.set-sensitive(False);
     $b2.set-sensitive(True);
+
+    note 'widget name: ', $top-window.get-name;
+    note 'buildable name: ', $top-window.buildable-get-name;
   }
 
   # Handle 'Goodbye' button click
@@ -42,6 +45,12 @@ my Gnome::Gtk3::Window $top-window .= new;
 $top-window.set-title('Hello GTK!');
 $top-window.set-border-width(20);
 
+# TODO: Names set with followin calls are shown in --sn generated tables
+# but will not be usable as reference in test protocol. In this case only
+# GtkWindow-0001 can be used.
+$top-window.set-name('my-top-level-window');
+$top-window.buildable-set-name('my-special-top-level-window');
+
 # Create a grid and add it to the window
 my Gnome::Gtk3::Grid $grid .= new;
 $top-window.add($grid);
@@ -58,7 +67,7 @@ $grid.attach( $second, 0, 1, 1, 1);
 # Instantiate the event handler class and register signals
 $button.register-signal(
   $ash, 'first-button-click', 'clicked',
-  :other-button($second)
+  :other-button($second), :$top-window
 );
 $second.register-signal(
   $ash, 'second-button-click', 'clicked'
