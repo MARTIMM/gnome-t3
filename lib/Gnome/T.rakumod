@@ -25,8 +25,11 @@ B<Gnome::T> class is the top level of the user interface test framework. To use 
 =item C<my-gui-program.raku>; is the gui program to test
 =item C<--Ttest-protocol.yaml>; test the gui using this test protocol. C<--T> is the modules option.
 
-=head2 Test protocol
+=item C<--SN>; Show a table of Gnome widget names and the generated buildable names.
 
+
+=head2 Test protocol
+The test protocol describes the steps to be executed in order to test the user interface.
 
 =end pod
 
@@ -37,7 +40,6 @@ class Gnome::T:auth<github:MARTIMM> {
 
   #-----------------------------------------------------------------------------
   has Gnome::T::Run $!run;
-
 
   #-----------------------------------------------------------------------------
   =begin pod
@@ -54,7 +56,9 @@ class Gnome::T:auth<github:MARTIMM> {
       $protocol-file ~~ s/\. \w* $/.yaml/;
     }
 
-    $!run .= new(:$protocol-file);
+    my Bool $show-object-names = @*ARGS.grep(/^'--' SN/).Bool;
+
+    $!run .= new( :$protocol-file, :$show-object-names);
   }
 
 
@@ -76,13 +80,11 @@ class Gnome::T:auth<github:MARTIMM> {
 #-------------------------------------------------------------------------------
 # create as soon as possible to prevent start of event loop
 #diag "prepare tests";
-my Gnome::T $*T;
+my Gnome::T $T .= new;
 
 #-------------------------------------------------------------------------------
 # only after the users gui is created and displayed we can start the tests
 END {
-
-  $*T .= new;
 
   #-----------------------------------------------------------------------------
   # variables set in Gnome::T
@@ -90,5 +92,5 @@ END {
   my DateTime $*log-time;
 
   #-----------------------------------------------------------------------------
-  $*T.run-test-protocol;
+  $T.run-test-protocol;
 }
