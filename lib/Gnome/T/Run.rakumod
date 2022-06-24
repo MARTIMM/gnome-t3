@@ -25,6 +25,7 @@ use Gnome::Gdk3::Window;
 use Gnome::Gdk3::Display;
 
 #use Gnome::Glib::Error;
+use Gnome::Glib::SList;
 
 use Gnome::N::N-GObject;
 use Gnome::N::GlibToRakuTypes;
@@ -53,6 +54,7 @@ has Hash $!main-protocol;
 has Array $!protocol;
 has Str $!protocol-name;
 has Hash $!config;
+has Bool $!show-object-names;
 
 has Int $!executed-tests;
 
@@ -71,7 +73,7 @@ submethod new ( |c ) {
 }
 
 #-------------------------------------------------------------------------------
-submethod BUILD ( Str:D :$!protocol-file ) {
+submethod BUILD ( Str:D :$!protocol-file, Bool :$!show-object-names ) {
 
   $!builder .= new;
   $!builder._set-test-mode(True);
@@ -92,7 +94,7 @@ submethod BUILD ( Str:D :$!protocol-file ) {
   $!step-snapshot .= new;
 
   with self {
-    .set-title("Gnome::T Test");
+    .set-title("Testing $*PROGRAM-NAME");
     .set-position(GTK_WIN_POS_CENTER);
     .set-gravity(GDK_GRAVITY_NORTH_EAST);
     .set-size-request( 300, 200);
@@ -162,6 +164,14 @@ method !load-subtest-protocol ( Str:D $protocol-file --> List ) {
 # run after users gui is set up and made visible
 method run-tests ( ) {
   CONTROL { when CX::Warn {  note .gist; .resume; } }
+
+  if ?$!show-object-names {
+    my Gnome::Glib::SList $objects = $!builder.get-objects;
+    for ^$objects.length -> $i {
+      my Gnome::Gtk3::Widget() $widget = $objects.nth-data($i);
+      note "Gnome widget name $widget.get-name() has buildable name $widget.buildable-get-name()";
+    }
+  }
 
   # only here we can get the window object from one of the builders
   $!app-window = $!tools.get-widget($!config<app-window-id>);
