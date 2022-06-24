@@ -25,11 +25,22 @@ B<Gnome::T> class is the top level of the user interface test framework. To use 
 =item C<my-gui-program.raku>; is the gui program to test
 =item C<--Ttest-protocol.yaml>; test the gui using this test protocol. C<--T> is the modules option.
 
-=item C<--SN>; Show a table of Gnome widget names and the generated buildable names.
+=item C<--sn>; Show a table of Gnome widget names and the generated buildable names.
 
 
 =head2 Test protocol
-The test protocol describes the steps to be executed in order to test the user interface.
+
+The test protocol describes the steps to be executed in order to test the user interface. There are step types to control the speed of testing, to send events to widgets, to test values of routines etc.
+
+=head3 Format
+
+=head3 The step types
+
+=head4 Timing
+
+=item C<configure-wait>;
+=item C<wait>;
+=item C<explicit-wait>;
 
 =end pod
 
@@ -56,7 +67,7 @@ class Gnome::T:auth<github:MARTIMM> {
       $protocol-file ~~ s/\. \w* $/.yaml/;
     }
 
-    my Bool $show-object-names = @*ARGS.grep(/^'--' SN/).Bool;
+    my Bool $show-object-names = @*ARGS.grep(/^'--' sn/).Bool;
 
     $!run .= new( :$protocol-file, :$show-object-names);
   }
