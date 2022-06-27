@@ -1,4 +1,9 @@
 ## Release notes
+* 2022-06-30 0.6.2
+  * Renamed project to reflect testing of version 3 only. Now, the
+   name is **Gnome::T3**.
+  * Rename Gnome::T module to **Gnome::T3**.
+
 * 2021-12-11 0.6.1
   * Refactoring the main routine in several other parts. Now we have **Gnome::T**, **Gnome::T::Run**, **Gnome::T::Tools**, **Gnome::T::StepSnapshot**, **Gnome::T::StepWait**.
 

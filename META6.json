@@ -1,7 +1,7 @@
 {
-  "description": "Raku - Gtk Gui Testing",
-  "name": "Gnome::T",
-  "version": "0.6.1",
+  "description": "Gtk Version 3 Gui Testing",
+  "name": "Gnome::T3",
+  "version": "0.6.2",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "test", "gui", "gtk"],
 
@@ -9,17 +9,17 @@
   "license": "Artistic-2.0",
 
   "provides": {
-    "Gnome::T::Benchmark": "lib/Gnome/T/Benchmark.rakumod",
+    "Gnome::T3::Benchmark": "lib/Gnome/T3/Benchmark.rakumod",
 
-    "Gnome::T::Run": "lib/Gnome/T/Run.rakumod",
-    "Gnome::T::StepSnapshot": "lib/Gnome/T/StepSnapshot.rakumod",
-    "Gnome::T::StepWait": "lib/Gnome/T/StepWait.rakumod",
-    "Gnome::T::Tools": "lib/Gnome/T/Tools.rakumod",
+    "Gnome::T3::Run": "lib/Gnome/T3/Run.rakumod",
+    "Gnome::T3::StepSnapshot": "lib/Gnome/T3/StepSnapshot.rakumod",
+    "Gnome::T3::StepWait": "lib/Gnome/T3/StepWait.rakumod",
+    "Gnome::T3::Tools": "lib/Gnome/T3/Tools.rakumod",
 
-    "Gnome::T": "lib/Gnome/T.rakumod"
+    "Gnome::T3": "lib/Gnome/T3.rakumod"
   },
 
-  "source-url": "git://github.com/MARTIMM/gnome-test.git",
+  "source-url": "git://github.com/MARTIMM/gnome-t3.git",
 
   "depends": [ "Gnome::Gtk3", "YAMLish", "P5times", "JSON::Fast"],
   "test-depends": [ ],
