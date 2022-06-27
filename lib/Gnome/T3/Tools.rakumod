@@ -7,17 +7,17 @@ use Gnome::N::N-GObject;
 use Gnome::Gtk3::Window;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::T::Tools:auth<github:MARTIMM>;
+unit class Gnome::T3::Tools:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
-my Gnome::T::Tools $instance;
+my Gnome::T3::Tools $instance;
 has Gnome::Gtk3::Window $!app-window;
 
 #-------------------------------------------------------------------------------
 method new (  ) { !!! }
 
 #-------------------------------------------------------------------------------
-method instance ( --> Gnome::T::Tools ) {
+method instance ( --> Gnome::T3::Tools ) {
   $instance // self.bless;
 }
 

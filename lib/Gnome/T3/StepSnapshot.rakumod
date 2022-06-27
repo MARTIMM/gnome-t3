@@ -15,12 +15,12 @@ use Gnome::N::N-GObject;
 use Gnome::N::GlibToRakuTypes;
 use Gnome::N::NativeLib;
 
-use Gnome::T::Tools;
+use Gnome::T3::Tools;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::T::StepSnapshot;
+unit class Gnome::T3::StepSnapshot;
 
-has Gnome::T::Tools $!tools;
+has Gnome::T3::Tools $!tools;
 
 #-------------------------------------------------------------------------------
 submethod BUILD ( ) {

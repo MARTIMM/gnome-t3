@@ -4,7 +4,7 @@ use YAMLish;
 use JSON::Fast;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::T::Benchmark:auth<github:MARTIMM>;
+unit class Gnome::T3::Benchmark:auth<github:MARTIMM>;
 
 has Hash $!tests;
 has Int $!test-count;

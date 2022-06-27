@@ -32,12 +32,12 @@ use Gnome::N::GlibToRakuTypes;
 use Gnome::N::NativeLib;
 #use Gnome::N::X;
 
-use Gnome::T::Tools;
-use Gnome::T::StepWait;
-use Gnome::T::StepSnapshot;
+use Gnome::T3::Tools;
+use Gnome::T3::StepWait;
+use Gnome::T3::StepSnapshot;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::T::Run:auth<github:MARTIMM>;
+unit class Gnome::T3::Run:auth<github:MARTIMM>;
 also is Gnome::Gtk3::Window;
 
 #-----------------------------------------------------------------------------
@@ -58,9 +58,9 @@ has Bool $!show-object-names;
 
 has Int $!executed-tests;
 
-has Gnome::T::Tools $!tools;
-has Gnome::T::StepWait $!step-wait;
-has Gnome::T::StepSnapshot $!step-snapshot;
+has Gnome::T3::Tools $!tools;
+has Gnome::T3::StepWait $!step-wait;
+has Gnome::T3::StepSnapshot $!step-snapshot;
 
 has Gnome::Gtk3::Main $!main;
 has Gnome::Gtk3::Window $!app-window;
