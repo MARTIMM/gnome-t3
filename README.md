@@ -16,28 +16,57 @@
 [changes]: https://github.com/MARTIMM/gnome-test/blob/master/CHANGES.md
 [logo]: https://martimm.github.io/gnome-gtk3/content-docs/images/gtk-raku.png
 
-# Gnome::T - Raku Gnome Gtk Gui Testing
+# Gnome::T3 - Raku Gnome Gtk Gui Testing
+
+# Synopsis
+On the command line write;
+```
+> raku -MGnome::T3 my-gui-program.raku --Ttest-protocol.yaml
+```
+where the program to test is called `my-gui-program.raku` using a test protocol described in the file `test-protocol.yaml`.
+
 
 # Description
 
-This is a project to provide a system which helps to test a GTK+ user interface build using the Raku modules **Gnome::***.
+The modules in this package provide a testing framework to test graphical user interfaces build upon the Gnome gtk version 3 libraries.
 
-Suppose the program is called `my-gui-program.raku` then you can run a test with
-```
-> raku -MGnome::T my-gui-program.raku --Ttest-protocol.yaml
-```
+## Test protocol
+
+The test protocol describes the steps to be executed in order to test the user interface. There are step types to control the speed of testing, to send events to widgets, to test values of routines etc.
+
+### Format
+
+### The step types
+
+#### Timing and control
+
+* `configure-wait`;
+* `wait`;
+* `explicit-wait`;
+* `finish`;
+
+#### Events
+* `emit-signal`;
+
+#### Values
+* `get-value`;
+
+#### Files
+* `snapshot`;
+* `sub-tests`;
 
 ## Documentation
 * [ 🔗 Website](https://martimm.github.io/gnome-gtk3/content-docs/reference-test.html)
-* [ 🔗 Travis-ci run on master branch][travis-run]
-* [ 🔗 Appveyor run on master branch][appveyor-run]
 * [ 🔗 License document][licence-lnk]
 * [ 🔗 Release notes][changes]
 * [ 🔗 Issues](https://github.com/MARTIMM/gnome-gtk3/issues)
 
+<!--
+* [ 🔗 Travis-ci run on master branch][travis-run]
+* [ 🔗 Appveyor run on master branch][appveyor-run]
+-->
 
 # Installation
-
 ```
 > zef install Gnome::T
 ```
