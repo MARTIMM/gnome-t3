@@ -1,6 +1,6 @@
 # test config parameters
 config:
-  debug:            true
+#  debug:            true
   protocol-name:    01-hello-world
   title:            Buttons Test
   description:      Test buttons of simple GUI
